@@ -41,10 +41,10 @@ _start:
  and x2, x2, 0
  slli x2, x2, 8
 
-HALT
+HALT:
  beq x0, x0, HALT
 
-A
+A:
  lw x4, LVAL6 
  lw x5, LVAL4
 
