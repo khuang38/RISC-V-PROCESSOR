@@ -1,66 +1,97 @@
-
 module mp3_tb;
 
 timeunit 1ns;
 timeprecision 1ns;
 
 logic clk;
-logic pmem_resp;
-logic pmem_read;
-logic pmem_write;
-logic [31:0] pmem_address;
-logic [255:0] pmem_wdata;
-logic [255:0] pmem_rdata;
+/* Port A */
+logic mem_resp_a;
+logic mem_read_a;
+logic mem_write_a;
+logic [3:0] mem_byte_enable_a;
+logic [31:0] mem_address_a;
+logic [31:0] mem_rdata_a;
+logic [31:0] mem_wdata_a;
+//logic [31:0] write_data_a;
+//logic [31:0] write_address_a;
 
-/* autograder signals */
-logic [255:0] write_data;
-logic [27:0] write_address;
-logic write;
-logic halt;
+/* Port B */
+logic mem_resp_b;
+logic mem_read_b;
+logic mem_write_b;
+logic [3:0] mem_byte_enable_b;
+logic [31:0] mem_address_b;
+logic [31:0] mem_rdata_b;
+logic [31:0] mem_wdata_b;
+//logic [31:0] write_data_b;
+//logic [31:0] write_address_b;
+
+//logic write;
 logic [31:0] registers [32];
-logic [255:0] data0 [8];
-logic [255:0] data1 [8];
-logic [23:0] tags0 [8];
-logic [23:0] tags1 [8];
 
 /* Clock generator */
 initial clk = 0;
 always #5 clk = ~clk;
 
-assign registers = dut.cpu.datapath.regfile.data;
-assign halt = ((dut.cpu.datapath.IR.data == 32'h00000063) | (dut.cpu.datapath.IR.data == 32'h0000006F));
-assign data0 = dut.cache.datapath.data_array0.data;
-assign data1 = dut.cache.datapath.data_array1.data;
-assign tags0 = dut.cache.datapath.tag_array0.data;
-assign tags1 = dut.cache.datapath.tag_array1.data;
+assign registers = dut.datapath.register_file.data;
+assign halt = ((dut.datapath.instruct_register.data == 32'h00000063) | (dut.datapath.instruct_register.data == 32'h0000006F));
 
 always @(posedge clk)
 begin
-    if (pmem_write & pmem_resp) begin
-        write_address = pmem_address[31:5];
-        write_data = pmem_wdata;
-        write = 1;
-	 end else begin
-        write_address = 27'hx;
-        write_data = 256'hx;
-        write = 0;
-    end
+//    if (mem_write & mem_resp) begin
+//        write_address = mem_address;
+//        write_data = mem_wdata;
+//        write = 1;
+//    end else begin
+//        write_address = 32'hx;
+//        write_data = 32'hx;
+//        write = 0;
+//    end
+    if (halt) $finish;
 end
 
-
-mp3 dut(
-    .*
+mp3 dut
+(
+    .clk,
+	/* Port A */
+    .mem_resp_a,
+    .mem_rdata_a,
+    .mem_read_a,
+    .mem_write_a,
+    .mem_byte_enable_a,
+    .mem_address_a,
+    .mem_wdata_a,
+	/* Port B */
+	.mem_resp_b,
+    .mem_rdata_b,
+    .mem_read_b,
+    .mem_write_b,
+    .mem_byte_enable_b,
+    .mem_address_b,
+    .mem_wdata_b
 );
 
-physical_memory memory(
-    .clk,
-    .read(pmem_read),
-    .write(pmem_write),
-    .address(pmem_address),
-    .wdata(pmem_wdata),
-    .resp(pmem_resp),
-    .rdata(pmem_rdata)
+magic_memory_dp memory
+(
+	.clk,
+
+    /* Port A */
+    .read_a(mem_read_a),
+    .write_a(mem_write_a),
+    .wmask_a(mem_byte_enable_a),
+    .address_a(mem_address_a),
+    .wdata_a(mem_wdata_a),
+    .resp_a(mem_resp_a),
+    .rdata_a(mem_rdata_a),
+
+    /* Port B */
+    .read_b(mem_read_b),
+    .write_b(mem_write_b),
+    .wmask_b(mem_byte_enable_b),
+    .address_b(mem_address_b),
+    .wdata_b(mem_wdata_b),
+    .resp_b(mem_resp_b),
+	.rdata_b(mem_rdata_b)
 );
 
 endmodule : mp3_tb
-
