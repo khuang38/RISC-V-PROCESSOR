@@ -64,18 +64,17 @@ typedef logic [3:0] rv32i_mem_wmask;
 
 
 typedef struct packed {
-rv32i_opcode opcode;
-alu_ops aluop;
-logic [1:0]regfilemux_sel;
-logic load_regfile;
-logic mem_write;
-logic mem_read;
-logic pcmux_sel;
-logic cmpmux_sel;
-branch_funct3_t cmp_op;
-logic [1:0] alumux1_sel;
-logic [2:0] alumux2_sel;
+    rv32i_opcode opcode;
+    alu_ops aluop;
+    logic [3:0] regfilemux_sel;
+    logic load_regfile;
+    logic mem_write;
+    logic mem_read;
+    logic pcmux_sel;
+    logic cmpmux_sel;
+    branch_funct3_t cmp_op;
+    logic [3:0] alumux1_sel;
+    logic [4:0] alumux2_sel;
 } rv32i_control_word;
 
 endpackage : rv32i_types
-
