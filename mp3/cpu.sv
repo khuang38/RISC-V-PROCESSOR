@@ -42,18 +42,19 @@ module cpu
 
     mux2 #(.width(32)) pc_mux
     (
-      .sel(MEM_pc_sel & MEM_br_en),
-      .a(IF_pc_out + 32'h4),
-      .b(MEM_alu_out),
-      .f(IF_pc_in)
+        .sel(MEM_pc_sel & MEM_br_en),
+        .a(IF_pc_out + 32'h4),
+        .b(MEM_alu_out),
+        .f(IF_pc_in)
     );
 
 
-    // stage ID
+    // Stage ID
 	logic [31:0] ID_pc, ID_ins;
 	logic [31:0] ID_data_a, ID_data_b;
 	logic WB_load_regfile;
     logic [31:0] WB_reg_in;
+    //TODO:: ID_cw
 
     assign ID_rs2 = ID_ins[24:20];
     assign ID_rs1 = ID_ins[19:15];
@@ -78,7 +79,7 @@ module cpu
 		.reg_b(ID_data_b)
 	);
 
-    // stage EXE
+    // Stage EXE
 	logic [31:0] EXE_pc, EXE_ins, EXE_data_a, EXE_data_b;
 	logic [31:0] EXE_alu_in1, EXE_alu_in2, EXE_alu_out;
     logic [1:0] EXE_alu_sel1;
@@ -87,6 +88,7 @@ module cpu
     alu_ops EXE_aluop;
     logic EXE_cmp_sel, EXE_br_en;
     logic [31:0] EXE_cmp_mux_out;
+    // TODO:: EXE_cw
 
     assign EXE_i_imm = {{21{EXE_ins[31]}}, EXE_ins[30:20]};
     assign EXE_s_imm = {{21{EXE_ins[31]}}, EXE_ins[30:25], EXE_ins[11:7]};
@@ -99,30 +101,33 @@ module cpu
 	(
 		.clk(clk),
 		.load(1'b1),
-		.in({ID_cw,  ID_pc,  ID_ins,  ID_data_a,  ID_data_b}),
+		.in({ID_cw, ID_pc, ID_ins, ID_data_a, ID_data_b}),
 		.out({EXE_cw, EXE_pc, EXE_ins, EXE_data_a, EXE_data_b})
 	);
 
-	 mux4 #(.width(32)) EXE_alu_mux1
-     (
-      .sel(EXE_alu_sel1),
-      .a(EXE_data_a),
-      .b(EXE_pc),
-	  .c(32'h0),
-	  .d(32'h0),
-      .f(EXE_alu_in1)
-      );
+	mux4 #(.width(32)) EXE_alu_mux1
+    (
+        .sel(EXE_alu_sel1),
+        .a(EXE_data_a),
+        .b(EXE_pc),
+    	.c(32'h0),
+    	.d(32'h0),
+        .f(EXE_alu_in1)
+    );
 
 	mux8 #(.width(32)) EXE_alu_mux2
-     (
-      .sel(EXE_alu_sel2),
-      .i0(EXE_i_imm),
-      .i1(EXE_u_imm),
-      .i2(EXE_b_imm),
-	  .i3(EXE_s_imm),
-	  .i4(EXE_data_b),
-	  .f(EXE_alu_in2)
-      );
+    (
+        .sel(EXE_alu_sel2),
+        .i0(EXE_i_imm),
+        .i1(EXE_u_imm),
+        .i2(EXE_b_imm),
+	    .i3(EXE_s_imm),
+	    .i4(EXE_data_b),
+        .i5(32h'0),
+        .i6(32h'0),
+        .i7(32h'0),
+	    .f(EXE_alu_in2)
+    );
 
 
 	alu EXE_alu
@@ -139,7 +144,7 @@ module cpu
         .a(EXE_data_b),
         .b(EXE_i_imm),
         .f(EXE_cmp_mux_out)
-        );
+    );
 
     cmp cmp
     (
@@ -147,12 +152,13 @@ module cpu
         .a(EXE_data_a),
         .b(EXE_cmp_mux_out)
         .f(EXE_br_en)
-        );
+    );
 
-    // stage MEM
+    // Stage MEM
     // TODO:: MEM_cw
     logic [31:0] MEM_alu_out, MEM_data_b;
     logic MEM_br_en;
+    // TODO::modified signal width in the future
     register #(.width(64)) EXE_MEM
     (
         .clk(clk),
@@ -162,7 +168,7 @@ module cpu
     );
 
     logic [31:0] MEM_rdata;
-    logic MEM_read, MEM_write;
+    logic MEM_read, MEM_write;  // TODO: From Control Word
 
     assign MEM_rdata = cmem_rdata_b;
     assign cmem_read_b = MEM_read;
@@ -171,7 +177,7 @@ module cpu
     assign cmem_address_b = MEM_alu_out;
     assign cmem_wdata_b = MEM_data_b;
 
-    // stage WB
+    // Stage WB
     // TODO:: WB_cw,
     logic [31:0] WB_alu_out, WB_rdata;
     logic [1:0] WB_reg_sel;
@@ -193,7 +199,7 @@ module cpu
         .c(WB_alu_out),
         .d(32'h0),
         .f(WB_reg_in)
-        );
+    );
 
 );
 
