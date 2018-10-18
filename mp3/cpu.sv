@@ -198,4 +198,4 @@ module cpu
 );
 
 
-endmodule : cache_datapath
+endmodule : cpu
