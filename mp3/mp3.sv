@@ -60,23 +60,21 @@ module mp3
    cpu cpu
      (
       .clk(clk),
-	  .cmem_resp_a;
-      .cmem_rdata_a;
-      .cmem_read_a;
-      .cmem_write_a;
-      .cmem_byte_enable_a;
-      .cmem_address_a;
-      .cmem_wdata_a;
+	  .cmem_resp_a,
+      .cmem_rdata_a,
+      .cmem_read_a,
+      .cmem_write_a,
+      .cmem_byte_enable_a,
+      .cmem_address_a,
+      .cmem_wdata_a,
 
-      .cmem_resp_b;
-      .cmem_rdata_b;
-      .cmem_read_b;
-      .cmem_write_b;
-      .cmem_byte_enable_b;
-      .cmem_address_b;
-      .cmem_wdata_b;
-
-
+      .cmem_resp_b,
+      .cmem_rdata_b,
+      .cmem_read_b,
+      .cmem_write_b,
+      .cmem_byte_enable_b,
+      .cmem_address_b,
+      .cmem_wdata_b
       );
 
 //   cache cache

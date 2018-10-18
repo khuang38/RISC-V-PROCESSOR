@@ -8,15 +8,15 @@ module control_rom
     output rv32i_control_word ctrl
 );
 
-logic [2:0] funct3,
-logic [6:0] funct7,
+logic [2:0] funct3;
+logic [6:0] funct7;
 assign funct3 = instruction[14:12];
 assign funct7 = instruction[31:25];
 
 always_comb
 begin
 /*Default assignments */
-ctrl.opcode = instruction[6:0];
+ctrl.opcode = rv32i_opcode'(instruction[6:0]);
 ctrl.aluop = alu_add;
 ctrl.regfilemux_sel = 2'b00;
 ctrl.load_regfile = 1'b0;
@@ -30,7 +30,7 @@ ctrl.alumux2_sel = 3'b000;
 
 
 /* Assign control signals based on opcode */
-case(opcode)
+case(ctrl.opcode)
         op_auipc: begin
             ctrl.aluop = alu_add;
         	ctrl.alumux1_sel = 2'b01;

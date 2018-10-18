@@ -4,6 +4,7 @@
 */simulation
 testcode/
 *.bak
+*.rpt
 \#*
 .\#*
 *~

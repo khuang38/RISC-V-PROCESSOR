@@ -27,6 +27,7 @@ module cpu
     logic [31:0] IF_pc_in, IF_pc_out, IF_ins;
     logic [31:0] MEM_alu_out;
     logic MEM_pc_sel;
+    logic MEM_br_en;
 
     assign MEM_pc_sel = MEM_cw.pcmux_sel;
     assign IF_ins = cmem_rdata_a;
@@ -54,13 +55,15 @@ module cpu
 
 
     // Stage ID
-	logic [31:0] ID_pc, ID_ins;
+	logic [31:0] ID_pc, ID_ins, WB_ins;
 	logic [31:0] ID_data_a, ID_data_b;
 	logic WB_load_regfile;
     logic [31:0] WB_reg_in;
+	logic [4:0] ID_rs1, ID_rs2, WB_rd;
 
     assign ID_rs2 = ID_ins[24:20];
     assign ID_rs1 = ID_ins[19:15];
+    assign WB_rd = WB_ins[11:7];
 
     control_rom controller
     (
@@ -72,7 +75,7 @@ module cpu
 	(
 		.clk(clk),
 		.load(1'b1),
-		.in({IF_pc, IF_ins}),
+		.in({IF_pc_out, IF_ins}),
 		.out({ID_pc, ID_ins})
 	);
 
@@ -136,9 +139,9 @@ module cpu
         .i2(EXE_b_imm),
 	    .i3(EXE_s_imm),
 	    .i4(EXE_data_b),
-        .i5(32h'0),
-        .i6(32h'0),
-        .i7(32h'0),
+        .i5(32'h0),
+        .i6(32'h0),
+        .i7(32'h0),
 	    .f(EXE_alu_in2)
     );
 
@@ -163,20 +166,19 @@ module cpu
     (
         .cmpop(EXE_cmpop),
         .a(EXE_data_a),
-        .b(EXE_cmp_mux_out)
+        .b(EXE_cmp_mux_out),
         .f(EXE_br_en)
     );
 
     // Stage MEM
-    logic [31:0] MEM_alu_out, MEM_data_b;
-    logic MEM_br_en;
+    logic [31:0] MEM_data_b, MEM_ins;
 
-    register #(.width(64 + 1 + $bits(rv32i_control_word))) EXE_MEM
+    register #(.width(32*3 + 1 + $bits(rv32i_control_word))) EXE_MEM
     (
         .clk(clk),
         .load(1'b1),
-        .in({EXE_cw, EXE_alu_out, EXE_data_b, EXE_br_en}),
-        .out({MEM_cw, MEM_alu_out, MEM_data_b, MEM_br_en})
+        .in({EXE_cw, EXE_alu_out, EXE_data_b, EXE_ins, EXE_br_en}),
+        .out({MEM_cw, MEM_alu_out, MEM_data_b, MEM_ins, MEM_br_en})
     );
 
     logic [31:0] MEM_rdata;
@@ -199,12 +201,12 @@ module cpu
     assign WB_reg_sel = WB_cw.regfilemux_sel;
     assign WB_load_regfile = WB_cw.load_regfile;
 
-    register #(.width(64 + 1 + $bits(rv32i_control_word)) MEM_WB
+    register #(.width(32*3 + 1 + $bits(rv32i_control_word))) MEM_WB
     (
         .clk(clk),
         .load(1'b1),
-        .in({MEM_cw, MEM_alu_out, MEM_rdata, MEM_br_en}),
-        .out({WB_cw, WB_alu_out, WB_rdata, WB_br_en})
+        .in({MEM_cw, MEM_alu_out, MEM_rdata, MEM_ins, MEM_br_en}),
+        .out({WB_cw, WB_alu_out, WB_rdata, WB_ins, WB_br_en})
     );
 
     mux4 wb_mux
@@ -216,8 +218,6 @@ module cpu
         .d(32'h0),
         .f(WB_reg_in)
     );
-
-);
 
 
 endmodule : cpu

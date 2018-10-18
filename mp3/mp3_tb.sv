@@ -26,29 +26,30 @@ logic [31:0] mem_wdata_b;
 //logic [31:0] write_data_b;
 //logic [31:0] write_address_b;
 
+logic halt;
 //logic write;
-logic [31:0] registers [32];
+//logic [31:0] registers [32];
 
 /* Clock generator */
 initial clk = 0;
 always #5 clk = ~clk;
 
-assign registers = dut.datapath.register_file.data;
-assign halt = ((dut.datapath.instruct_register.data == 32'h00000063) | (dut.datapath.instruct_register.data == 32'h0000006F));
-
-always @(posedge clk)
-begin
-//    if (mem_write & mem_resp) begin
-//        write_address = mem_address;
-//        write_data = mem_wdata;
-//        write = 1;
-//    end else begin
-//        write_address = 32'hx;
-//        write_data = 32'hx;
-//        write = 0;
-//    end
-    if (halt) $finish;
-end
+//assign registers = dut.datapath.register_file.data;
+//assign halt = ((dut.datapath.instruct_register.data == 32'h00000063) | (dut.datapath.instruct_register.data == 32'h0000006F));
+//
+//always @(posedge clk)
+//begin
+////    if (mem_write & mem_resp) begin
+////        write_address = mem_address;
+////        write_data = mem_wdata;
+////        write = 1;
+////    end else begin
+////        write_address = 32'hx;
+////        write_data = 32'hx;
+////        write = 0;
+////    end
+//    if (halt) $finish;
+//end
 
 mp3 dut
 (
