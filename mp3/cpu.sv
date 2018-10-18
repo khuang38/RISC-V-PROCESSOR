@@ -31,7 +31,7 @@ module cpu
     assign MEM_pc_sel = MEM_cw.pcmux_sel;
     assign IF_ins = cmem_rdata_a;
     assign cmem_read_a = 1'b1;
-    assign cmem_write_a = 1'b0;
+    assign cmem_write_a = 1'b0;    // TODO::modified signal width in the future
     assign cmem_byte_enable_a = 4'b1111;
     assign cmem_address_a = IF_pc_out;
     assign cmem_wdata_a = 32'h0;
@@ -110,8 +110,7 @@ module cpu
     assign EXE_u_imm = {EXE_ins[31:12], 12'h000};
     assign EXE_j_imm = {{12{EXE_ins[31]}}, EXE_ins[19:12], EXE_ins[20], EXE_ins[30:21], 1'b0};
 
-    // TODO::modified signal width in the future
-	register #(.width(64)) ID_EXE
+	register #(.width(32 * 4 + $bits(rv32i_control_word))) ID_EXE
 	(
 		.clk(clk),
 		.load(1'b1),
@@ -172,8 +171,7 @@ module cpu
     logic [31:0] MEM_alu_out, MEM_data_b;
     logic MEM_br_en;
 
-    // TODO::modified signal width in the future
-    register #(.width(64)) EXE_MEM
+    register #(.width(64 + 1 + $bits(rv32i_control_word))) EXE_MEM
     (
         .clk(clk),
         .load(1'b1),
@@ -200,8 +198,8 @@ module cpu
 
     assign WB_reg_sel = WB_cw.regfilemux_sel;
     assign WB_load_regfile = WB_cw.load_regfile;
-    
-    register #(.width(64)) MEM_WB
+
+    register #(.width(64 + 1 + $bits(rv32i_control_word)) MEM_WB
     (
         .clk(clk),
         .load(1'b1),
