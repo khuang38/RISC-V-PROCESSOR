@@ -6,15 +6,15 @@ _start:
 
 
  
- lw x1, LVAL1
- lw x2, LVAL2
- lw x3, LVAL3
+# lw x1, LVAL1
+# lw x2, LVAL2
+# lw x3, LVAL3
 
  lui x12, 1
    addi x0, x0, 0 #nop
    addi x0, x0, 0 #nop
    addi x0, x0, 0 #nop
- addi x12, x12, 0x134
+ addi x12, x12, 0x164
    addi x0, x0, 0 #nop
    addi x0, x0, 0 #nop
    addi x0, x0, 0 #nop
@@ -67,10 +67,10 @@ _start:
    addi x0, x0, 0 #nop
  slli x2, x2, 8
 
-HALT
+HALT:
  beq x0, x0, HALT
 
-A
+A:
  lw x4, 20(x12) #lw x4, LVAL6 
  lw x5, 12(x12) #lw x5, LVAL4 
    addi x0, x0, 0 #nop
