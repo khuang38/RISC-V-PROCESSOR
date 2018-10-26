@@ -4,15 +4,25 @@ lw_sw_all:
 .globl _start
 _start:
 
+lui x12, 1
+nop
+nop
+nop
+addi x12, x12, 0x134
 
- 
- lw x1, LVAL1
+lw sp, 8(x12)
+
+
+
  lw x2, LVAL2
  lw x3, LVAL3
 
  addi x2, x1, 1
+addi x0, x0, x0
+
  add x3, x1, x2
 
+addi x10, x12, 
  la x10, line1
  la x9, line2
  la x8, line3
@@ -73,7 +83,8 @@ A:
 .section .rodata
 
 
-line1:      .word 0x11111111
+
+:      .word 0x11111111
 line2:      .word 0x66666666
 line3:      .word 0x38383838
 LVAL1:	    .word 0xffffffff
