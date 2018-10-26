@@ -10,11 +10,11 @@ _start:
 # lw x2, LVAL2
 # lw x3, LVAL3
 
- lui x12, 1
+ lui x12,0
    addi x0, x0, 0 #nop
    addi x0, x0, 0 #nop
    addi x0, x0, 0 #nop
- addi x12, x12, 0x164
+ addi x12, x12, 0x174
    addi x0, x0, 0 #nop
    addi x0, x0, 0 #nop
    addi x0, x0, 0 #nop
@@ -71,8 +71,17 @@ HALT:
  beq x0, x0, HALT
 
 A:
+   addi x0, x0, 0 #nop
+   addi x0, x0, 0 #nop
+   addi x0, x0, 0 #nop
+   addi x0, x0, 0 #nop
  lw x4, 20(x12) #lw x4, LVAL6 
  lw x5, 12(x12) #lw x5, LVAL4 
+   addi x0, x0, 0 #nop
+   addi x0, x0, 0 #nop
+   addi x0, x0, 0 #nop
+B: 
+   addi x4, x4, -1
    addi x0, x0, 0 #nop
    addi x0, x0, 0 #nop
    addi x0, x0, 0 #nop
@@ -80,7 +89,7 @@ A:
    addi x0, x0, 0 #nop
    addi x0, x0, 0 #nop
    addi x0, x0, 0 #nop
- bge x7, x10, A
+ bge x7, x10, B
    addi x0, x0, 0 #nop
    addi x0, x0, 0 #nop
    addi x0, x0, 0 #nop

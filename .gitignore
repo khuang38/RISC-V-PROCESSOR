@@ -2,6 +2,7 @@
 */db
 */output_files
 */simulation
+bin/*.sh
 *.bak
 *.rpt
 \#*

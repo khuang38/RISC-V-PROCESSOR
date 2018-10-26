@@ -77,7 +77,7 @@ case(ctrl.opcode)
 		op_imm: begin /*ADDI, XORI, ORI, ANDI, SLLI, SRLI*/
     		ctrl.aluop = alu_ops'(funct3);
     		ctrl.alumux1_sel = 2'b00;
-    		ctrl.alumux2_sel = 3'b001;
+    		ctrl.alumux2_sel = 3'b000;
     		ctrl.mem_write = 1'b0;
     		ctrl.mem_read = 1'b0;
     		ctrl.pcmux_sel = 1'b0;
