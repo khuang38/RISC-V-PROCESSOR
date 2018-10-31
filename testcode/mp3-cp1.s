@@ -1,26 +1,11 @@
-#  mp3-cp1.s version 2.0
+#  mp3-cp1.s version 3.0
 .align 4
 .section .text
 .globl _start
 _start:
-    lui x1, %hi(NEGTWO)
-    nop
-    nop
-    nop
-    nop
-    lw x1, %lo(NEGTWO)(x1)
-    lui x2, %hi(TWO)
-    nop
-    nop
-    nop
-    nop
-    lw x2, %lo(TWO)(x2)
-    lui x4, %hi(ONE)
-    nop
-    nop
-    nop
-    nop
-    lw x4, %lo(ONE)(x4)
+    lw x1, %lo(NEGTWO)(x0)
+    lw x2, %lo(TWO)(x0)
+    lw x4, %lo(ONE)(x0)
     nop
     nop
     nop
@@ -53,12 +38,7 @@ LOOP:
     add x3, x1, x2 # X3 <= X1 + X2
     and x5, x1, x4 # X5 <= X1 & X4
     not x6, x1     # X6 <= ~X1
-    lui x9, %hi(TEMP1)
-    nop
-    nop
-    nop
-    nop
-    addi x9, x9, %lo(TEMP1) # X9 <= address of TEMP1
+    addi x9, x0, %lo(TEMP1) # X9 <= address of TEMP1
     nop
     nop
     nop
@@ -66,12 +46,7 @@ LOOP:
     nop
     nop
     sw x6, 0(x9)   # TEMP1 <= x6
-    lui x7, %hi(TEMP1)
-    nop
-    nop
-    nop
-    nop
-    lw x7, %lo(TEMP1)(x7) # X7    <= TEMP1
+    lw x7, %lo(TEMP1)(x0) # X7    <= TEMP1
     add x1, x1, x4 # X1    <= X1 + X4
     nop
     nop
@@ -97,12 +72,7 @@ LOOP:
     nop
     nop
 
-    lui x1, %hi(BADD)
-    nop
-    nop
-    nop
-    nop
-    lw x1, %lo(BADD)(x1)
+    lw x1, %lo(BADD)(x0)
 HALT:	
     beq x0, x0, HALT
     nop
@@ -114,12 +84,7 @@ HALT:
     nop
 		
 DONEa:
-    lui x1, %hi(GOOD)
-    nop
-    nop
-    nop
-    nop
-    lw x1, %lo(GOOD)(x1)
+    lw x1, %lo(GOOD)(x0)
 DONEb:	
     beq x0, x0, DONEb
     nop
