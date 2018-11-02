@@ -22,11 +22,13 @@ ctrl.regfilemux_sel = 2'b00;
 ctrl.load_regfile = 1'b0;
 ctrl.mem_write = 1'b0;
 ctrl.mem_write = 1'b0;
-ctrl.pcmux_sel = 1'b0;
+ctrl.pcmux_sel = 2'b00;
 ctrl.cmpmux_sel = 1'b0;
 ctrl.cmp_op = beq;
 ctrl.alumux1_sel = 2'b00;
 ctrl.alumux2_sel = 3'b000;
+ctrl.mdr_sel = 3'b000;
+ctrl.mem_byte_enable = 4'b1111;
 
 
 /* Assign control signals based on opcode */
@@ -37,7 +39,7 @@ case(ctrl.opcode)
         	ctrl.alumux2_sel = 3'b001;
         	ctrl.mem_write = 1'b0;
         	ctrl.mem_read = 1'b0;
-        	ctrl.pcmux_sel = 1'b0;
+        	ctrl.pcmux_sel = 2'b00;
         	ctrl.regfilemux_sel = 2'b01;
         	ctrl.load_regfile = 1'b1;
         end
@@ -48,7 +50,7 @@ case(ctrl.opcode)
     		ctrl.alumux2_sel = 3'b001;
     		ctrl.mem_write = 1'b0;
     		ctrl.mem_read = 1'b0;
-    		ctrl.pcmux_sel = 1'b0;
+    		ctrl.pcmux_sel = 2'b00;
     		ctrl.regfilemux_sel = 2'b10;
     		ctrl.load_regfile = 1'b1;
 		end
@@ -59,9 +61,19 @@ case(ctrl.opcode)
     		ctrl.alumux2_sel = 3'b000;
     		ctrl.mem_write = 1'b0;
     		ctrl.mem_read = 1'b1;
-    		ctrl.pcmux_sel = 1'b0;
+    		ctrl.pcmux_sel = 2'b00;
     		ctrl.regfilemux_sel = 2'b00;
     		ctrl.load_regfile = 1'b1;
+			if (funct3 == 3'b000) /*LB*/
+			    ctrl.mdr_sel = 3'b011;
+			else if (funct3 == 3'b001) /*LH*/
+	          ctrl.mdr_sel = 3'b001;
+		  	else if (funct3 == 3'b010) /*LW*/
+	          ctrl.mdr_sel = 3'b000;
+			else if (funct3 == 3'b100) /*LBU*/
+	          ctrl.mdr_sel = 3'b100;
+			else if (funct3 == 3'b101) /*LHU*/
+	          ctrl.mdr_sel = 3'b010;		
 		end
 
 		op_store: begin
@@ -70,8 +82,14 @@ case(ctrl.opcode)
     		ctrl.alumux2_sel = 3'b011;
     		ctrl.mem_write = 1'b1;
     		ctrl.mem_read = 1'b0;
-    		ctrl.pcmux_sel = 1'b0;
+    		ctrl.pcmux_sel = 2'b00;
     		ctrl.load_regfile = 1'b0;
+			if (funct3 == 3'b000) /*SB*/
+			    ctrl.mem_byte_enable = 4'b0001; 
+			else if (funct3 == 3'b001) /*SH*/
+	          ctrl.mem_byte_enable = 4'b0011;
+		  	else if (funct3 == 3'b010) /*SW*/
+	          ctrl.mem_byte_enable = 4'b1111;
 		end
 
 		op_imm: begin /*ADDI, XORI, ORI, ANDI, SLLI, SRLI*/
@@ -80,26 +98,27 @@ case(ctrl.opcode)
     		ctrl.alumux2_sel = 3'b000;
     		ctrl.mem_write = 1'b0;
     		ctrl.mem_read = 1'b0;
-    		ctrl.pcmux_sel = 1'b0;
+    		ctrl.pcmux_sel = 2'b00;
     		ctrl.regfilemux_sel = 2'h2;
-		    ctrl.load_regfile = 1'b1;
+		   ctrl.load_regfile = 1'b1;
             if (funct7[5] && ctrl.aluop == alu_srl)
                 ctrl.aluop = alu_sra;
 		end
 
 		op_reg: begin /*ADD, SLL, XOR, SRL, OR, AND*/
-    	    ctrl.aluop = alu_ops'(funct3);
+    	   ctrl.aluop = alu_ops'(funct3);
         	ctrl.alumux1_sel = 2'b00;
         	ctrl.alumux2_sel = 3'b100;
         	ctrl.mem_write = 1'b0;
         	ctrl.mem_read = 1'b0;
-        	ctrl.pcmux_sel = 1'b0;
+        	ctrl.pcmux_sel = 2'b00;
         	ctrl.regfilemux_sel = 2'h2;
         	ctrl.load_regfile = 1'b1;
             if (funct7[5] && ctrl.aluop == alu_add)
                 ctrl.aluop = alu_sub;
             if (funct7[5] && ctrl.aluop == alu_srl)
                 ctrl.aluop = alu_sra;
+		   			 
 		end
 
 		op_br: begin /*BEQ, BNE, BLT, BGE, BLTU, BGEU*/
@@ -110,9 +129,33 @@ case(ctrl.opcode)
     		ctrl.cmp_op = branch_funct3_t'(funct3);
     		ctrl.mem_write = 1'b0;
     		ctrl.mem_read = 1'b0;
-    		ctrl.pcmux_sel = 1'b1;
+    		ctrl.pcmux_sel = 2'b01;
     		ctrl.load_regfile = 1'b0;
 		end
+		
+		op_jal: begin /*JAL*/
+		   ctrl.aluop = alu_add;
+    		ctrl.alumux1_sel = 2'b01;
+    		ctrl.alumux2_sel = 3'b100;
+    		ctrl.cmpmux_sel = 1'b0;
+    		ctrl.cmp_op = 1'b0;
+    		ctrl.mem_write = 1'b0;
+    		ctrl.mem_read = 1'b0;
+    		ctrl.pcmux_sel = 2'b10;
+    		ctrl.load_regfile = 1'b1;
+		end
+		
+		op_jalr: begin /*JALR*/
+		   ctrl.aluop = alu_add;
+    		ctrl.alumux1_sel = 2'b00;
+    		ctrl.alumux2_sel = 3'b000;
+    		ctrl.cmpmux_sel = 1'b0;
+    		ctrl.cmp_op = 1'b0;
+    		ctrl.mem_write = 1'b0;
+    		ctrl.mem_read = 1'b0;
+    		ctrl.pcmux_sel = 2'b10;
+    		ctrl.load_regfile = 1'b1;
+		end	
 
         default: begin
             ctrl = 0; /* Unknown opcode, set control word to zero */
