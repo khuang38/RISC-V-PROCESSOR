@@ -4,12 +4,12 @@ timeunit 1ns;
 timeprecision 1ns;
 
 logic clk;
- input          pmem_resp;
- input [255:0]  pmem_rdata;
- output         pmem_read;
- output         pmem_write;
- output [31:0]  pmem_address;
- output [255:0] pmem_wdata;
+logic pmem_resp;
+logic [255:0] pmem_rdata;
+logic pmem_read;
+logic pmem_write;
+logic [31:0] pmem_address;
+logic [255:0] pmem_wdata;
 logic halt;
 //logic write;
 //logic [31:0] registers [32];

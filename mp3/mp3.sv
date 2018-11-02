@@ -66,14 +66,14 @@ module mp3
       .cmem_write_b,
       .cmem_byte_enable_b,
       .cmem_address_b,
-      .cmem_wdata_b
+      .cmem_wdata_b,
 
       .pmem_resp,
       .pmem_address,
       .pmem_wdata,
       .pmem_rdata,
       .pmem_read,
-      .pmem_write,
+      .pmem_write
       );
 
 
