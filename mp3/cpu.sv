@@ -22,8 +22,11 @@ module cpu
 );
 	// pipe line control logic
 	
-	logic PPLINE_run = 1'b1;
-	logic PPLINE_reset = 1'b0;
+	logic pc_mux_sel;
+	
+	logic PPLINE_run;
+   assign PPLINE_run = !((cmem_read_a & !cmem_resp_a) | ((cmem_write_b | cmem_read_b) & !cmem_resp_b));
+	logic PPLINE_reset = pc_mux_sel;
 
 
     // Define all the control words
@@ -51,7 +54,7 @@ module cpu
     	.out(IF_pc_out)
 	);
 	
-	logic pc_mux_sel = (MEM_pc_sel & MEM_br_en == 2'h1) | (MEM_br_en == 2'h2);
+	assign pc_mux_sel = (MEM_pc_sel == 2'h1 & MEM_br_en) | (MEM_br_en == 2'h2);
 
     mux2 #(.width(32)) pc_mux
     (
@@ -200,7 +203,7 @@ module cpu
     assign MEM_rdata = cmem_rdata_b;
     assign cmem_read_b = MEM_read;
     assign cmem_write_b = MEM_write;
-    assign cmem_byte_enable_b = 4'b1111;
+    assign cmem_byte_enable_b = MEM_cw.mem_byte_enable;
     assign cmem_address_b = MEM_alu_out;
     assign cmem_wdata_b = MEM_data_b;
 
