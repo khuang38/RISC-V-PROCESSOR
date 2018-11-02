@@ -13,6 +13,7 @@ logic [6:0] funct7;
 assign funct3 = instruction[14:12];
 assign funct7 = instruction[31:25];
 
+
 always_comb
 begin
 /*Default assignments */
@@ -73,7 +74,7 @@ case(ctrl.opcode)
 			else if (funct3 == 3'b100) /*LBU*/
 	          ctrl.mdr_sel = 3'b100;
 			else if (funct3 == 3'b101) /*LHU*/
-	          ctrl.mdr_sel = 3'b010;		
+	          ctrl.mdr_sel = 3'b010;
 		end
 
 		op_store: begin
@@ -85,7 +86,7 @@ case(ctrl.opcode)
     		ctrl.pcmux_sel = 2'b00;
     		ctrl.load_regfile = 1'b0;
 			if (funct3 == 3'b000) /*SB*/
-			    ctrl.mem_byte_enable = 4'b0001; 
+			    ctrl.mem_byte_enable = 4'b0001;
 			else if (funct3 == 3'b001) /*SH*/
 	          ctrl.mem_byte_enable = 4'b0011;
 		  	else if (funct3 == 3'b010) /*SW*/
@@ -118,7 +119,7 @@ case(ctrl.opcode)
                 ctrl.aluop = alu_sub;
             if (funct7[5] && ctrl.aluop == alu_srl)
                 ctrl.aluop = alu_sra;
-		   			 
+
 		end
 
 		op_br: begin /*BEQ, BNE, BLT, BGE, BLTU, BGEU*/
@@ -132,30 +133,28 @@ case(ctrl.opcode)
     		ctrl.pcmux_sel = 2'b01;
     		ctrl.load_regfile = 1'b0;
 		end
-		
+
 		op_jal: begin /*JAL*/
 		   ctrl.aluop = alu_add;
     		ctrl.alumux1_sel = 2'b01;
     		ctrl.alumux2_sel = 3'b100;
     		ctrl.cmpmux_sel = 1'b0;
-    		ctrl.cmp_op = 1'b0;
     		ctrl.mem_write = 1'b0;
     		ctrl.mem_read = 1'b0;
     		ctrl.pcmux_sel = 2'b10;
     		ctrl.load_regfile = 1'b1;
 		end
-		
+
 		op_jalr: begin /*JALR*/
 		   ctrl.aluop = alu_add;
     		ctrl.alumux1_sel = 2'b00;
     		ctrl.alumux2_sel = 3'b000;
     		ctrl.cmpmux_sel = 1'b0;
-    		ctrl.cmp_op = 1'b0;
     		ctrl.mem_write = 1'b0;
     		ctrl.mem_read = 1'b0;
     		ctrl.pcmux_sel = 2'b10;
     		ctrl.load_regfile = 1'b1;
-		end	
+		end
 
         default: begin
             ctrl = 0; /* Unknown opcode, set control word to zero */
@@ -163,76 +162,78 @@ case(ctrl.opcode)
 
     endcase
 	// for debug
+    if(instruction == 32'h0)begin
+$display("no ins");
+    end
+    case (ctrl.opcode)
+        op_lui: begin
+            $display("op_lui");
+        end
+        op_jal: begin
+            $display("op_jal");
+        end
+        op_jalr: begin
+            $display("op_jalr");
+        end
 
- 	case (ctrl.opcode)
-       	op_lui: begin
-          	$display("op_lui");
-       	end
-       	op_jal: begin
-          	$display("op_jal");
-       	end
-       	op_jalr: begin
-          	$display("op_jalr");
-       	end
-
-       	op_auipc: begin
-          	$display("op_auipc");
-       	end
-       	op_br: begin
-          	case (funct3)
-            	beq: $display("op_beq");
-            	bne: $display("op_bne");
-            	blt: $display("op_blt");
-            	bge: $display("op_bge");
-            	bltu: $display("op_bltu");
-            	bgeu: $display("op_bgeu");
-            	default: $display("unknown funct3");
-          	endcase // case (funct3)
-       	end
-       	op_load:  begin
-          	$display("op_load");
-       	end
-       	op_store:  begin
-          	$display("op_store");
-       	end
-       	op_reg: begin
-          	case (funct3)
-            	add: begin
-               	if(funct7[5]) $display("op_sub");
-               	else $display("op_add");
-            	end
-            	sll: $display("op_sll");
-            	slt: $display("op_slt");
-            	sltu: $display("op_sltu");
-            	axor: $display("op_axor");
-            	sr: begin
-               	if(funct7[5]) $display("op_sra");
-               	else $display("op_srl");
-            	end
-            	aor: $display("op_aor");
-            	aand: $display("op_aand");
-          	endcase // case (funct3)
-       	end
-       	op_imm: begin
-          	case (funct3)
-            	add: begin
-               	if(funct7[5]) $display("op_subi");
-               	else $display("op_addi");
-            	end
-            	sll: $display("op_slli");
-            	slt: $display("op_slti");
-            	sltu: $display("op_sltui");
-            	axor: $display("op_axori");
-            	sr: begin
-               	if(funct7[5]) $display("op_srai");
-               	else $display("op_srli");
-            	end
-            	aor: $display("op_aori");
-            	aand: $display("op_aandi");
-          	endcase // case (funct3)
-       	end
-       	default: $display("unknown opcode");
-     endcase // case (opcode)
+        op_auipc: begin
+            $display("op_auipc");
+        end
+        op_br: begin
+            case (funct3)
+            beq: $display("op_beq");
+            bne: $display("op_bne");
+            blt: $display("op_blt");
+            bge: $display("op_bge");
+            bltu: $display("op_bltu");
+            bgeu: $display("op_bgeu");
+            default: $display("unknown funct3");
+            endcase // case (funct3)
+        end
+        op_load:  begin
+            $display("op_load");
+        end
+        op_store:  begin
+            $display("op_store");
+        end
+        op_reg: begin
+            case (funct3)
+            add: begin
+                if(funct7[5]) $display("op_sub");
+                else $display("op_add");
+            end
+            sll: $display("op_sll");
+            slt: $display("op_slt");
+            sltu: $display("op_sltu");
+            axor: $display("op_axor");
+            sr: begin
+                if(funct7[5]) $display("op_sra");
+                else $display("op_srl");
+            end
+            aor: $display("op_aor");
+            aand: $display("op_aand");
+            endcase // case (funct3)
+        end
+        op_imm: begin
+            case (funct3)
+            add: begin
+                if(funct7[5]) $display("op_subi");
+                else $display("op_addi");
+            end
+            sll: $display("op_slli");
+            slt: $display("op_slti");
+            sltu: $display("op_sltui");
+            axor: $display("op_axori");
+            sr: begin
+                if(funct7[5]) $display("op_srai");
+                else $display("op_srli");
+            end
+            aor: $display("op_aori");
+            aand: $display("op_aandi");
+            endcase // case (funct3)
+        end
+        default: $display("unknown opcode");
+    endcase // case (opcode)
 end
 
 endmodule : control_rom

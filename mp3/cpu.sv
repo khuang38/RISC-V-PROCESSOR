@@ -21,12 +21,13 @@ module cpu
     output logic [31:0] cmem_wdata_b
 );
 	// pipe line control logic
-	
+
 	logic pc_mux_sel;
-	
+
 	logic PPLINE_run;
-   assign PPLINE_run = !((cmem_read_a & !cmem_resp_a) | ((cmem_write_b | cmem_read_b) & !cmem_resp_b));
-	logic PPLINE_reset = pc_mux_sel;
+    assign PPLINE_run = !((cmem_read_a & !cmem_resp_a) | ((cmem_write_b | cmem_read_b) & !cmem_resp_b));
+	logic PPLINE_reset;
+	assign PPLINE_reset = pc_mux_sel;
 
 
     // Define all the control words
@@ -53,9 +54,8 @@ module cpu
     	.in(IF_pc_in),
     	.out(IF_pc_out)
 	);
-	
-	logic pc_mux_sel;
-	assign pc_mux_sel = (MEM_pc_sel & MEM_br_en == 2'h1) | (MEM_br_en == 2'h2);
+
+	assign pc_mux_sel = (MEM_pc_sel == 2'h1 & MEM_br_en) | (MEM_pc_sel == 2'h2);
     mux2 #(.width(32)) pc_mux
     (
         .sel(pc_mux_sel),
@@ -192,7 +192,7 @@ module cpu
         .load(PPLINE_run),
 		  .reset(PPLINE_reset),
         .in({EXE_cw, EXE_pc, EXE_alu_out, EXE_data_b, EXE_ins, EXE_br_en}),
-        .out({MEM_cw, MEM_pc, EXE_alu_out, MEM_data_b, MEM_ins, MEM_br_en})
+        .out({MEM_cw, MEM_pc, MEM_alu_out, MEM_data_b, MEM_ins, MEM_br_en})
     );
 
     logic [31:0] MEM_rdata;
@@ -225,7 +225,7 @@ module cpu
         .in({MEM_cw, MEM_pc, MEM_alu_out, MEM_rdata, MEM_ins, MEM_br_en}),
         .out({WB_cw, WB_pc, WB_alu_out, WB_rdata, WB_ins, WB_br_en})
     );
-	 
+
 	 assign WB_pc_plus_4 = WB_pc + 32'h4;
 
 	 mux8 mdr_mux
@@ -241,7 +241,7 @@ module cpu
        .i7(32'h0),
 	    .f(WB_mdr_mux_out)
 	 );
-	 
+
     mux4 wb_mux
     (
         .sel(WB_reg_sel),

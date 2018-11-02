@@ -2,27 +2,27 @@ module arbiter (
     input clk,
 
     // Signals for instruction cache
-    output i_resp,
+    output logic i_resp,
     input i_write,
     input i_read,
     input [255:0] i_wdata,
     input [31:0] i_addr,
-    output [255:0] i_rdata,
+    output logic [255:0] i_rdata,
 
     // Signals for data cache
-    output d_resp,
+    output logic d_resp,
     input d_write,
     input d_read,
     input [255:0] d_wdata,
     input [31:0] d_addr,
-    output [255:0] d_rdata,
+    output logic [255:0] d_rdata,
 
     input          pmem_resp,
     input [255:0]  pmem_rdata,
-    output         pmem_read,
-    output         pmem_write,
-    output [31:0]  pmem_address,
-    output [255:0] pmem_wdata
+    output logic   pmem_read,
+    output logic   pmem_write,
+    output logic [31:0] pmem_address,
+    output logic [255:0] pmem_wdata
 );
 
 // Signal assignments

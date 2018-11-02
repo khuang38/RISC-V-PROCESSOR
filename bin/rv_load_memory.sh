@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Settings
-DEFAULT_TARGET=/home/chengyi5/uiucjournalist/mp3/simulation/modelsim/memory.lst
+DEFAULT_TARGET=/home/cwu72/ece411/uiucjournalist/mp3/simulation/modelsim/memory.lst
 ASSEMBLER=/class/ece411/software/riscv-tools/bin/riscv32-unknown-elf-gcc
 OBJCOPY=/class/ece411/software/riscv-tools/bin/riscv32-unknown-elf-objcopy
 OBJDUMP=/class/ece411/software/riscv-tools/bin/riscv32-unknown-elf-objdump
-ADDRESSABILITY=1
+ADDRESSABILITY=32
 
 # Command line parameters
 ASM_FILE=$1
