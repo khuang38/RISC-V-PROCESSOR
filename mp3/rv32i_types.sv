@@ -70,11 +70,13 @@ typedef struct packed {
     logic load_regfile;
     logic mem_write;
     logic mem_read;
-    logic pcmux_sel;
+    logic [1:0] pcmux_sel;
     logic cmpmux_sel;
     branch_funct3_t cmp_op;
     logic [1:0] alumux1_sel;
     logic [2:0] alumux2_sel;
+	 logic [2:0] mdr_sel;
+	 logic [3:0] mem_byte_enable;
 } rv32i_control_word;
 
 endpackage : rv32i_types

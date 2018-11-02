@@ -20,6 +20,12 @@ module cpu
     output logic [31:0] cmem_address_b,
     output logic [31:0] cmem_wdata_b
 );
+	// pipe line control logic
+	
+	logic PPLINE_run = 1'b1;
+	logic PPLINE_reset = 1'b0;
+
+
     // Define all the control words
     rv32i_control_word ID_cw, EXE_cw, MEM_cw, WB_cw;
 
@@ -40,14 +46,16 @@ module cpu
 	pc_register pc
 	(
     	.clk(clk),
-    	.load(1'b1),
+    	.load(PPLINE_run),
     	.in(IF_pc_in),
     	.out(IF_pc_out)
 	);
+	
+	logic pc_mux_sel = (MEM_pc_sel & MEM_br_en == 2'h1) | (MEM_br_en == 2'h2);
 
     mux2 #(.width(32)) pc_mux
     (
-        .sel(MEM_pc_sel & MEM_br_en),
+        .sel(pc_mux_sel),
         .a(IF_pc_out + 32'h4),
         .b(MEM_alu_out),
         .f(IF_pc_in)
@@ -55,11 +63,11 @@ module cpu
 
 
     // Stage ID
-	logic [31:0] ID_pc, ID_ins, WB_ins;
-	logic [31:0] ID_data_a, ID_data_b;
-	logic WB_load_regfile;
+	 logic [31:0] ID_pc, ID_ins, WB_ins;
+	 logic [31:0] ID_data_a, ID_data_b;
+	 logic WB_load_regfile;
     logic [31:0] WB_reg_in;
-	logic [4:0] ID_rs1, ID_rs2, WB_rd;
+	 logic [4:0] ID_rs1, ID_rs2, WB_rd;
 
     assign ID_rs2 = ID_ins[24:20];
     assign ID_rs1 = ID_ins[19:15];
@@ -71,10 +79,11 @@ module cpu
         .ctrl(ID_cw)
     );
 
-	register #(.width(64)) IF_ID
+	stage_register #(.width(64)) IF_ID
 	(
 		.clk(clk),
-		.load(1'b1),
+		.load(PPLINE_run),
+		.reset(PPLINE_reset),
 		.in({IF_pc_out, IF_ins}),
 		.out({ID_pc, ID_ins})
 	);
@@ -113,10 +122,11 @@ module cpu
     assign EXE_u_imm = {EXE_ins[31:12], 12'h000};
     assign EXE_j_imm = {{12{EXE_ins[31]}}, EXE_ins[19:12], EXE_ins[20], EXE_ins[30:21], 1'b0};
 
-	register #(.width(32 * 4 + $bits(rv32i_control_word))) ID_EXE
+	stage_register #(.width(32 * 4 + $bits(rv32i_control_word))) ID_EXE
 	(
 		.clk(clk),
-		.load(1'b1),
+		.load(PPLINE_run),
+		.reset(PPLINE_reset),
 		.in({ID_cw, ID_pc, ID_ins, ID_data_a, ID_data_b}),
 		.out({EXE_cw, EXE_pc, EXE_ins, EXE_data_a, EXE_data_b})
 	);
@@ -126,8 +136,8 @@ module cpu
         .sel(EXE_alu_sel1),
         .a(EXE_data_a),
         .b(EXE_pc),
-    	.c(32'h0),
-    	.d(32'h0),
+    	  .c(32'h0),
+    	  .d(32'h0),
         .f(EXE_alu_in1)
     );
 
@@ -137,9 +147,9 @@ module cpu
         .i0(EXE_i_imm),
         .i1(EXE_u_imm),
         .i2(EXE_b_imm),
-	    .i3(EXE_s_imm),
-	    .i4(EXE_data_b),
-        .i5(32'h0),
+	     .i3(EXE_s_imm),
+	     .i4(EXE_j_imm),
+        .i5(EXE_data_b),
         .i6(32'h0),
         .i7(32'h0),
 	    .f(EXE_alu_in2)
@@ -171,14 +181,15 @@ module cpu
     );
 
     // Stage MEM
-    logic [31:0] MEM_data_b, MEM_ins;
+    logic [31:0] MEM_data_b, MEM_ins, MEM_pc;
 
-    register #(.width(32*3 + 1 + $bits(rv32i_control_word))) EXE_MEM
+    stage_register #(.width(32*4 + 1 + $bits(rv32i_control_word))) EXE_MEM
     (
         .clk(clk),
-        .load(1'b1),
-        .in({EXE_cw, EXE_alu_out, EXE_data_b, EXE_ins, EXE_br_en}),
-        .out({MEM_cw, MEM_alu_out, MEM_data_b, MEM_ins, MEM_br_en})
+        .load(PPLINE_run),
+		  .reset(PPLINE_reset),
+        .in({EXE_cw, EXE_pc, EXE_alu_out, EXE_data_b, EXE_ins, EXE_br_en}),
+        .out({MEM_cw, MEM_pc, EM_alu_out, MEM_data_b, MEM_ins, MEM_br_en})
     );
 
     logic [31:0] MEM_rdata;
@@ -194,28 +205,47 @@ module cpu
     assign cmem_wdata_b = MEM_data_b;
 
     // Stage WB
-    logic [31:0] WB_alu_out, WB_rdata;
+    logic [31:0] WB_alu_out, WB_rdata, WB_pc, WB_pc_plus_4, WB_mdr_mux_out;
     logic [1:0] WB_reg_sel;
+	 logic [2:0] WB_mdr_sel;
     logic WB_br_en;
 
+	 assign WB_mdr_sel = WB_cw.mdr_sel;
     assign WB_reg_sel = WB_cw.regfilemux_sel;
     assign WB_load_regfile = WB_cw.load_regfile;
 
-    register #(.width(32*3 + 1 + $bits(rv32i_control_word))) MEM_WB
+    stage_register #(.width(32*4 + 1 + $bits(rv32i_control_word))) MEM_WB
     (
         .clk(clk),
-        .load(1'b1),
-        .in({MEM_cw, MEM_alu_out, MEM_rdata, MEM_ins, MEM_br_en}),
-        .out({WB_cw, WB_alu_out, WB_rdata, WB_ins, WB_br_en})
+        .load(PPLINE_run),
+		  .reset(PPLINE_reset),
+        .in({MEM_cw, MEM_pc, MEM_alu_out, MEM_rdata, MEM_ins, MEM_br_en}),
+        .out({WB_cw, WB_pc, WB_alu_out, WB_rdata, WB_ins, WB_br_en})
     );
+	 
+	 assign WB_pc_plus_4 = WB_pc + 32'h4;
 
+	 mux8 mdr_mux
+	 (
+		 .sel(WB_mdr_sel),
+		 .i0(WB_rdata),
+       .i1({{16{WB_rdata[15]}}, WB_rdata[15:0]}),
+       .i2({16'b0, WB_rdata[15:0]}),
+       .i3({{24{WB_rdata[7]}}, WB_rdata[7:0]}),
+       .i4({24'b0, WB_rdata[7:0]}),
+       .i5(32'h0),
+       .i6(32'h0),
+       .i7(32'h0),
+	    .f(WB_mdr_mux_out)
+	 );
+	 
     mux4 wb_mux
     (
         .sel(WB_reg_sel),
-        .a(WB_rdata),
+        .a(WB_mdr_mux_out),
         .b({31'h0, WB_br_en}),
         .c(WB_alu_out),
-        .d(32'h0),
+        .d(WB_pc_plus_4),
         .f(WB_reg_in)
     );
 

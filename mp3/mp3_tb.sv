@@ -4,28 +4,12 @@ timeunit 1ns;
 timeprecision 1ns;
 
 logic clk;
-/* Port A */
-logic mem_resp_a;
-logic mem_read_a;
-logic mem_write_a;
-logic [3:0] mem_byte_enable_a;
-logic [31:0] mem_address_a;
-logic [31:0] mem_rdata_a;
-logic [31:0] mem_wdata_a;
-//logic [31:0] write_data_a;
-//logic [31:0] write_address_a;
-
-/* Port B */
-logic mem_resp_b;
-logic mem_read_b;
-logic mem_write_b;
-logic [3:0] mem_byte_enable_b;
-logic [31:0] mem_address_b;
-logic [31:0] mem_rdata_b;
-logic [31:0] mem_wdata_b;
-//logic [31:0] write_data_b;
-//logic [31:0] write_address_b;
-
+ input          pmem_resp;
+ input [255:0]  pmem_rdata;
+ output         pmem_read;
+ output         pmem_write;
+ output [31:0]  pmem_address;
+ output [255:0] pmem_wdata;
 logic halt;
 //logic write;
 //logic [31:0] registers [32];
@@ -54,45 +38,23 @@ always #5 clk = ~clk;
 mp3 dut
 (
     .clk,
-	/* Port A */
-    .mem_resp_a,
-    .mem_rdata_a,
-    .mem_read_a,
-    .mem_write_a,
-    .mem_byte_enable_a,
-    .mem_address_a,
-    .mem_wdata_a,
-	/* Port B */
-	.mem_resp_b,
-    .mem_rdata_b,
-    .mem_read_b,
-    .mem_write_b,
-    .mem_byte_enable_b,
-    .mem_address_b,
-    .mem_wdata_b
+	 .pmem_resp,
+    .pmem_address,
+    .pmem_wdata,
+    .pmem_rdata,
+    .pmem_read,
+    .pmem_write
 );
 
-magic_memory_dp memory
+physical_memory memory
 (
-	.clk,
-
-    /* Port A */
-    .read_a(mem_read_a),
-    .write_a(mem_write_a),
-    .wmask_a(mem_byte_enable_a),
-    .address_a(mem_address_a),
-    .wdata_a(mem_wdata_a),
-    .resp_a(mem_resp_a),
-    .rdata_a(mem_rdata_a),
-
-    /* Port B */
-    .read_b(mem_read_b),
-    .write_b(mem_write_b),
-    .wmask_b(mem_byte_enable_b),
-    .address_b(mem_address_b),
-    .wdata_b(mem_wdata_b),
-    .resp_b(mem_resp_b),
-	.rdata_b(mem_rdata_b)
+	.clk(clk),
+   .read(pmem_read),
+   .write(pmem_write),
+   .address(pmem_address),
+   .wdata(pmem_wdata),
+   .resp(pmem_resp),
+   .rdata(pmem_rdata)
 );
 
 endmodule : mp3_tb
