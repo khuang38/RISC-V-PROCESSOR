@@ -32,7 +32,7 @@ module cpu
     // stage IF;
     logic [31:0] IF_pc_in, IF_pc_out, IF_ins;
     logic [31:0] MEM_alu_out;
-    logic MEM_pc_sel;
+    logic [1:0] MEM_pc_sel;
     logic MEM_br_en;
 
     assign MEM_pc_sel = MEM_cw.pcmux_sel;
@@ -51,7 +51,8 @@ module cpu
     	.out(IF_pc_out)
 	);
 	
-	logic pc_mux_sel = (MEM_pc_sel & MEM_br_en == 2'h1) | (MEM_br_en == 2'h2);
+	logic pc_mux_sel;
+	assign pc_mux_sel = (MEM_pc_sel & MEM_br_en == 2'h1) | (MEM_br_en == 2'h2);
 
     mux2 #(.width(32)) pc_mux
     (
@@ -189,7 +190,7 @@ module cpu
         .load(PPLINE_run),
 		  .reset(PPLINE_reset),
         .in({EXE_cw, EXE_pc, EXE_alu_out, EXE_data_b, EXE_ins, EXE_br_en}),
-        .out({MEM_cw, MEM_pc, EM_alu_out, MEM_data_b, MEM_ins, MEM_br_en})
+        .out({MEM_cw, MEM_pc, EXE_alu_out, MEM_data_b, MEM_ins, MEM_br_en})
     );
 
     logic [31:0] MEM_rdata;

@@ -131,15 +131,6 @@ case(ctrl.opcode)
        	op_jalr: begin
           	$display("op_jalr");
        	end
-       	op_lui: begin
-          	$display("op_lui");
-       	end
-       	op_jal: begin
-          	$display("op_jal");
-       	end
-       	op_jalr: begin
-          	$display("op_jalr");
-       	end
 
        	op_auipc: begin
           	$display("op_auipc");

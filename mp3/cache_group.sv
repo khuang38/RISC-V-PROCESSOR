@@ -27,12 +27,12 @@ module cache_group
 );
 
 // Internal Signals Instantiation
-logic i_resp, i_write, i_read, i_wdata;
+logic i_resp, i_write, i_read;
 logic [255:0] i_wdata;
 logic [31:0] i_addr;
 logic [255:0] i_rdata;
 
-logic d_resp, d_write, d_read, d_wdata;
+logic d_resp, d_write, d_read;
 logic [255:0] d_wdata;
 logic [31:0] d_addr;
 logic  [255:0] d_rdata;
@@ -104,4 +104,4 @@ arbiter arbiter
     .pmem_wdata
 );
 
-endmodule : cache
+endmodule : cache_group

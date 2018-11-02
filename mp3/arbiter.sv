@@ -23,7 +23,7 @@ module arbiter (
     output         pmem_write,
     output [31:0]  pmem_address,
     output [255:0] pmem_wdata
-):
+);
 
 // Signal assignments
 assign pmem_wdata = d_wdata;
@@ -87,6 +87,7 @@ always_comb begin
                 next_state = d_cache;
             end
         end
+	endcase
 end
 
 // Declaring all the signals inside each state
@@ -118,6 +119,7 @@ always_comb begin
             i_resp = 0;
             d_resp = pmem_resp;
         end
+	endcase
 end
 
 

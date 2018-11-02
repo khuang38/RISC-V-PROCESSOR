@@ -32,4 +32,4 @@ begin
     out = data;
 end
 
-endmodule : register
+endmodule : stage_register
