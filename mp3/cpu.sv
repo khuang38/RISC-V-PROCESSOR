@@ -23,12 +23,14 @@ module cpu
 	// pipe line control logic
 
 	logic pc_mux_sel;
-
-	logic PPLINE_run;
-    assign PPLINE_run = !((cmem_read_a & !cmem_resp_a) | ((cmem_write_b | cmem_read_b) & !cmem_resp_b));
-	logic PPLINE_reset;
+	
+	
+   logic PPLINE_reset;
 	assign PPLINE_reset = pc_mux_sel;
 
+	logic PPLINE_run;
+   assign PPLINE_run = PPLINE_reset | !((cmem_read_a & !cmem_resp_a) | ((cmem_write_b | cmem_read_b) & !cmem_resp_b));
+	
 
     // Define all the control words
     rv32i_control_word ID_cw, EXE_cw, MEM_cw, WB_cw;
