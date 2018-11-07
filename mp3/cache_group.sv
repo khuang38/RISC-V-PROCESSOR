@@ -41,13 +41,13 @@ logic  [255:0] d_rdata;
 cache instruct_cache
 (
     .clk,
-    .cmem_resp(cmem_resp_a),
-    .cmem_rdata(cmem_rdata_a),
-    .cmem_read(cmem_read_a),
-    .cmem_write(cmem_write_a),
-    .cmem_byte_enable(cmem_byte_enable_a),
-    .cmem_address(cmem_address_a),
-    .cmem_wdata(cmem_wdata_a),
+    .mem_resp(cmem_resp_a),
+    .mem_rdata(cmem_rdata_a),
+    .mem_read(cmem_read_a),
+    .mem_write(cmem_write_a),
+    .mem_byte_enable(cmem_byte_enable_a),
+    .mem_address(cmem_address_a),
+    .mem_wdata(cmem_wdata_a),
 
     .pmem_resp(i_resp),
     .pmem_rdata(i_rdata),
@@ -61,13 +61,13 @@ cache instruct_cache
 cache data_cache
 (
     .clk,
-    .cmem_resp(cmem_resp_b),
-    .cmem_rdata(cmem_rdata_b),
-    .cmem_read(cmem_read_b),
-    .cmem_write(cmem_write_b),
-    .cmem_byte_enable(cmem_byte_enable_b),
-    .cmem_address(cmem_address_b),
-    .cmem_wdata(cmem_wdata_b),
+    .mem_resp(cmem_resp_b),
+    .mem_rdata(cmem_rdata_b),
+    .mem_read(cmem_read_b),
+    .mem_write(cmem_write_b),
+    .mem_byte_enable(cmem_byte_enable_b),
+    .mem_address(cmem_address_b),
+    .mem_wdata(cmem_wdata_b),
 
     .pmem_resp(d_resp),
     .pmem_rdata(d_rdata),
