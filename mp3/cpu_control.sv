@@ -41,7 +41,7 @@ case(ctrl.opcode)
         	ctrl.mem_write = 1'b0;
         	ctrl.mem_read = 1'b0;
         	ctrl.pcmux_sel = 2'b00;
-        	ctrl.regfilemux_sel = 2'b01;
+        	ctrl.regfilemux_sel = 2'b10;
         	ctrl.load_regfile = 1'b1;
         end
 
@@ -102,8 +102,18 @@ case(ctrl.opcode)
     		ctrl.pcmux_sel = 2'b00;
     		ctrl.regfilemux_sel = 2'h2;
 		   ctrl.load_regfile = 1'b1;
-            if (funct7[5] && ctrl.aluop == alu_srl)
-                ctrl.aluop = alu_sra;
+			if (funct7[5] && ctrl.aluop == alu_srl)
+				 ctrl.aluop = alu_sra;
+			if (funct3 == slt) begin
+				ctrl.aluop = alu_add;
+				ctrl.cmp_op = blt;
+				ctrl.regfilemux_sel = 2'h1;
+			end
+			if (funct3 == sltu) begin
+				ctrl.aluop = alu_add;
+				ctrl.cmp_op = bltu;
+				ctrl.regfilemux_sel = 2'h1;
+			end
 		end
 
 		op_reg: begin /*ADD, SLL, XOR, SRL, OR, AND*/
@@ -143,6 +153,7 @@ case(ctrl.opcode)
     		ctrl.mem_read = 1'b0;
     		ctrl.pcmux_sel = 2'b10;
     		ctrl.load_regfile = 1'b1;
+			ctrl.regfilemux_sel = 2'h3;
 		end
 
 		op_jalr: begin /*JALR*/
@@ -154,6 +165,7 @@ case(ctrl.opcode)
     		ctrl.mem_read = 1'b0;
     		ctrl.pcmux_sel = 2'b10;
     		ctrl.load_regfile = 1'b1;
+			ctrl.regfilemux_sel = 2'h3;
 		end
 
         default: begin

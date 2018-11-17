@@ -21,9 +21,9 @@ begin
 		alufwdmux1_sel = 2'h2;
 	end
 	
-	if(mem_load_regfile & (mem_rd !=0) & (mem_rd == exe_rs1) ) begin
+	if(mem_load_regfile & (mem_rd !=0) & (mem_rd == exe_rs2) ) begin
 		alufwdmux2_sel = 2'h1;
-	end else if(wb_load_regfile & (wb_rd != 0) & (wb_rd == exe_rs1)) begin
+	end else if(wb_load_regfile & (wb_rd != 0) & (wb_rd == exe_rs2)) begin
 		alufwdmux2_sel = 2'h2;
 	end
 end

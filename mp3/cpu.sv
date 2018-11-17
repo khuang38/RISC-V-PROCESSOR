@@ -57,7 +57,7 @@ module cpu
 	pc_register pc
 	(
     	.clk(clk),
-    	.load(PPLINE_run),
+    	.load(PPLINE_run & (~insert_bubble)),
     	.in(IF_pc_in),
     	.out(IF_pc_out)
 	);
@@ -93,7 +93,7 @@ module cpu
 	stage_register #(.width(64)) IF_ID
 	(
 		.clk(clk),
-		.load(PPLINE_run),
+		.load(PPLINE_run & (~insert_bubble)),
 		.reset(PPLINE_reset),
 		.in({IF_pc_out, IF_ins}),
 		.out({ID_pc, ID_ins})
@@ -153,11 +153,11 @@ module cpu
 	mux4 #(.width(32)) EXE_alu_mux1
     (
         .sel(EXE_alu_sel1),
-        .a(EXE_data_a),
+        .a(EXE_alu_fwd_in1),
         .b(EXE_pc),
     	  .c(32'h0),
     	  .d(32'h0),
-        .f(EXE_alu_fwd_in1)
+        .f(EXE_alu_in1)
     );
 
 	mux8 #(.width(32)) EXE_alu_mux2
@@ -168,31 +168,31 @@ module cpu
         .i2(EXE_b_imm),
 	     .i3(EXE_s_imm),
 	     .i4(EXE_j_imm),
-        .i5(EXE_data_b),
+        .i5(EXE_alu_fwd_in2),
         .i6(32'h0),
         .i7(32'h0),
-	    .f(EXE_alu_fwd_in2)
+	     .f(EXE_alu_in2)
     );
 	 
 	 
 	 mux4 #(.width(32)) EXE_alu_fwd_mux1
     (
         .sel(EXE_alu_fwd_mux_sel1),
-        .a(EXE_alu_fwd_in1),
+        .a(EXE_data_a),
         .b(MEM_reg_in),
     	  .c(WB_reg_in),
     	  .d(32'h0),
-        .f(EXE_alu_in1)
+        .f(EXE_alu_fwd_in1)
     );
 	 
 	 mux4 #(.width(32)) EXE_alu_fwd_mux2
     (
         .sel(EXE_alu_fwd_mux_sel2),
-        .a(EXE_alu_fwd_in2),
+        .a(EXE_data_b),
         .b(MEM_reg_in),
     	  .c(WB_reg_in),
     	  .d(32'h0),
-        .f(EXE_alu_in2)
+        .f(EXE_alu_fwd_in2)
     );
 
 
@@ -207,7 +207,7 @@ module cpu
     mux2 cmp_mux
     (
         .sel(EXE_cmp_sel),
-        .a(EXE_data_b),
+        .a(EXE_alu_fwd_in2),
         .b(EXE_i_imm),
         .f(EXE_cmp_mux_out)
     );
@@ -215,7 +215,7 @@ module cpu
     cmp cmp
     (
         .cmpop(EXE_cmpop),
-        .a(EXE_data_a),
+        .a(EXE_alu_fwd_in1),
         .b(EXE_cmp_mux_out),
         .f(EXE_br_en)
     );
@@ -303,13 +303,15 @@ module cpu
         .f(MEM_reg_in)
     );
 	 
-	 logic MEM_load_regfile;
-	 logic [4:0] EXE_rs1, EXE_rs2, MEM_rd;
+	 logic MEM_load_regfile, EXE_mem_read;
+	 logic [4:0] EXE_rs1, EXE_rs2, MEM_rd, EXE_rd;
 	 
-	 assign EXE_rs1 = EXE_ins[24:20];
-    assign EXE_rs2 = EXE_ins[19:15];
+	 assign EXE_mem_read = EXE_cw.mem_read;
+	 assign EXE_rs2 = EXE_ins[24:20];
+    assign EXE_rs1 = EXE_ins[19:15];
 	 assign MEM_rd = MEM_ins[11:7];
 	 assign MEM_load_regfile = MEM_cw.load_regfile;
+	 assign EXE_rd = EXE_ins[11:7];
 	 
 	 
 	 data_forward_unit dfu(

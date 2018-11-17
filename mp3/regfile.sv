@@ -21,11 +21,11 @@ begin
     end
 end
 
-always_ff @(posedge clk)
+always_ff @(negedge clk)
 begin
     if (load && dest)
     begin
-        data[dest] = in;
+        data[dest] <= in;
     end
 end
 
