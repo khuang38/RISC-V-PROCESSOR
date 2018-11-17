@@ -303,11 +303,15 @@ module cpu
         .f(MEM_reg_in)
     );
 	 
-	 logic [4:0] EXE_rs1, EXE_rs2;
+	 logic MEM_load_regfile;
+	 logic [4:0] EXE_rs1, EXE_rs2, MEM_rd;
 	 
-	 assign EXE_rs1 = MEM_ins[24:20];
-    assign EXE_rs2 = MEM_ins[19:15];
-
+	 assign EXE_rs1 = EXE_ins[24:20];
+    assign EXE_rs2 = EXE_ins[19:15];
+	 assign MEM_rd = MEM_ins[11:7];
+	 assign MEM_load_regfile = MEM_cw.load_regfile;
+	 
+	 
 	 data_forward_unit dfu(
 		.mem_load_regfile(MEM_load_regfile),
 		.mem_rd(MEM_rd),
