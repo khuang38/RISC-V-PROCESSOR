@@ -198,29 +198,22 @@ begin : next_state_logic
      next_state = state;
 
      case (state)
-        // idle: begin
-        //     if (mem_read == 1 || mem_write == 1)
-        //         next_state = read_write;
-        //     else
-        //         next_state = idle;
-        // end
-
         read_write: begin
-            if (hit_0 == 1 || hit_1 == 1) // If there is a hit in Cache Way, looping
-                next_state = read_write;
-
-            else if (valid_out_0 == 1 && valid_out_1 == 1) begin/* If both ways are valid */
-
-                if (dirty_out_0 == 1 && lru_out == 0) // Need use cashway 0 and it is dirty
-                    next_state = write_back;
-                else if (dirty_out_1 == 1 && lru_out == 1) // Need to write back way 1
-                    next_state = write_back;
-                else
-                    next_state = access_pmem;	// Stay conflicted for now
-			end
-
-            else
-                next_state = access_pmem;
+            if (mem_read || mem_write) begin
+                if (hit_0 == 1 || hit_1 == 1)begin// If there is a hit in Cache Way, looping
+                    next_state = read_write;
+                end else if (valid_out_0 == 1 && valid_out_1 == 1) begin/* If both ways are valid */
+                    if (dirty_out_0 == 1 && lru_out == 0) begin// Need use cashway 0 and it is dirty
+                        next_state = write_back;
+                    end else if (dirty_out_1 == 1 && lru_out == 1) begin// Need to write back way 1
+                        next_state = write_back;
+                    end else begin
+                        next_state = access_pmem;	// Stay conflicted for now
+                    end
+                end else begin
+                    next_state = access_pmem;
+                end
+            end
         end
 
         access_pmem: begin
