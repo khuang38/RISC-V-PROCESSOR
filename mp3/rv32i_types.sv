@@ -78,6 +78,7 @@ typedef struct packed {
     logic [2:0] alumux2_sel;
 	 logic [2:0] mdr_sel;
 	 logic [3:0] mem_byte_enable;
+	 logic is_branch;
 } rv32i_control_word;
 
 endpackage : rv32i_types

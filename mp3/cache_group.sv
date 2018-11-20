@@ -28,7 +28,8 @@ module cache_group
 	 
 	 output logic l1i_hit,
 	 output logic l1d_hit,
-	 output logic l2_hit
+	 output logic l2_hit,
+	 output logic l2_read_or_write
 );
 
 // Internal Signals Instantiation
@@ -117,6 +118,9 @@ arbiter arbiter
     .pmem_wdata(ab_wdata)
 );
 
+
+assign l2_read_or_write = ab_read | ab_write;
+
 // Added to incorporate L2-Cache
 l2_cache l2_cache
 (
@@ -133,7 +137,8 @@ l2_cache l2_cache
     .pmem_read,
     .pmem_write,
     .pmem_address,
-    .pmem_wdata
+    .pmem_wdata,
+	 .is_hit(l2_hit)
 );
 
 endmodule : cache_group

@@ -27,6 +27,8 @@ module mp3
    logic [3:0]    cmem_byte_enable_b;
    logic [31:0]   cmem_address_b;
    logic [31:0]   cmem_wdata_b;
+	
+	logic l1i_hit, l1d_hit, l2_hit, l2_read_or_write;
 
 
    cpu cpu
@@ -46,7 +48,11 @@ module mp3
       .cmem_write_b,
       .cmem_byte_enable_b,
       .cmem_address_b,
-      .cmem_wdata_b
+      .cmem_wdata_b,
+		.l1i_hit,
+		.l1d_hit,
+		.l2_hit,
+		.l2_read_or_write
       );
 
    cache_group cache_group
@@ -73,8 +79,12 @@ module mp3
       .pmem_wdata,
       .pmem_rdata,
       .pmem_read,
-      .pmem_write
+      .pmem_write,
+		
+		.l1i_hit,
+		.l1d_hit,
+		.l2_hit,
+		.l2_read_or_write
       );
-
 
 endmodule : mp3

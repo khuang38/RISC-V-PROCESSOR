@@ -19,7 +19,7 @@ begin
 /*Default assignments */
 ctrl.opcode = rv32i_opcode'(instruction[6:0]);
 ctrl.aluop = alu_add;
-ctrl.regfilemux_sel = 2'b00;
+ctrl.regfilemux_sel = 3'b00;
 ctrl.load_regfile = 1'b0;
 ctrl.mem_write = 1'b0;
 ctrl.mem_write = 1'b0;
@@ -30,7 +30,7 @@ ctrl.alumux1_sel = 2'b00;
 ctrl.alumux2_sel = 3'b000;
 ctrl.mdr_sel = 3'b000;
 ctrl.mem_byte_enable = 4'b1111;
-
+ctrl.is_branch = 1'b0;
 
 /* Assign control signals based on opcode */
 case(ctrl.opcode)
@@ -41,7 +41,7 @@ case(ctrl.opcode)
         	ctrl.mem_write = 1'b0;
         	ctrl.mem_read = 1'b0;
         	ctrl.pcmux_sel = 2'b00;
-        	ctrl.regfilemux_sel = 2'b10;
+        	ctrl.regfilemux_sel = 3'b10;
         	ctrl.load_regfile = 1'b1;
         end
 
@@ -52,7 +52,7 @@ case(ctrl.opcode)
     		ctrl.mem_write = 1'b0;
     		ctrl.mem_read = 1'b0;
     		ctrl.pcmux_sel = 2'b00;
-    		ctrl.regfilemux_sel = 2'b10;
+    		ctrl.regfilemux_sel = 3'b10;
     		ctrl.load_regfile = 1'b1;
 		end
 
@@ -63,7 +63,7 @@ case(ctrl.opcode)
     		ctrl.mem_write = 1'b0;
     		ctrl.mem_read = 1'b1;
     		ctrl.pcmux_sel = 2'b00;
-    		ctrl.regfilemux_sel = 2'b00;
+    		ctrl.regfilemux_sel = 3'b00;
     		ctrl.load_regfile = 1'b1;
 			if (funct3 == 3'b000) /*LB*/
 			    ctrl.mdr_sel = 3'b011;
@@ -100,19 +100,19 @@ case(ctrl.opcode)
     		ctrl.mem_write = 1'b0;
     		ctrl.mem_read = 1'b0;
     		ctrl.pcmux_sel = 2'b00;
-    		ctrl.regfilemux_sel = 2'h2;
+    		ctrl.regfilemux_sel = 3'h2;
 		   ctrl.load_regfile = 1'b1;
 			if (funct7[5] && ctrl.aluop == alu_srl)
 				 ctrl.aluop = alu_sra;
 			if (funct3 == slt) begin
 				ctrl.aluop = alu_add;
 				ctrl.cmp_op = blt;
-				ctrl.regfilemux_sel = 2'h1;
+				ctrl.regfilemux_sel = 3'h1;
 			end
 			if (funct3 == sltu) begin
 				ctrl.aluop = alu_add;
 				ctrl.cmp_op = bltu;
-				ctrl.regfilemux_sel = 2'h1;
+				ctrl.regfilemux_sel = 3'h1;
 			end
 		end
 
@@ -123,7 +123,7 @@ case(ctrl.opcode)
         	ctrl.mem_write = 1'b0;
         	ctrl.mem_read = 1'b0;
         	ctrl.pcmux_sel = 2'b00;
-        	ctrl.regfilemux_sel = 2'h2;
+        	ctrl.regfilemux_sel = 3'h2;
         	ctrl.load_regfile = 1'b1;
             if (funct7[5] && ctrl.aluop == alu_add)
                 ctrl.aluop = alu_sub;
@@ -142,6 +142,12 @@ case(ctrl.opcode)
     		ctrl.mem_read = 1'b0;
     		ctrl.pcmux_sel = 2'b01;
     		ctrl.load_regfile = 1'b0;
+			ctrl.is_branch = 1'b1;
+		end
+		
+		op_getperf: begin
+			ctrl.load_regfile = 1'b1;
+			rl.regfilemux_sel = 3'h4;
 		end
 
 		op_jal: begin /*JAL*/
@@ -153,7 +159,7 @@ case(ctrl.opcode)
     		ctrl.mem_read = 1'b0;
     		ctrl.pcmux_sel = 2'b10;
     		ctrl.load_regfile = 1'b1;
-			ctrl.regfilemux_sel = 2'h3;
+			ctrl.regfilemux_sel = 3'h3;
 		end
 
 		op_jalr: begin /*JALR*/
@@ -165,7 +171,7 @@ case(ctrl.opcode)
     		ctrl.mem_read = 1'b0;
     		ctrl.pcmux_sel = 2'b10;
     		ctrl.load_regfile = 1'b1;
-			ctrl.regfilemux_sel = 2'h3;
+			ctrl.regfilemux_sel = 3'h3;
 		end
 
         default: begin
