@@ -10,7 +10,7 @@ module cache_group
     input [31:0]   cmem_address_a,
     input [31:0]   cmem_wdata_a,
 
-	output         cmem_resp_b,
+	 output         cmem_resp_b,
     output [31:0]  cmem_rdata_b,
     input          cmem_read_b,
     input          cmem_write_b,
@@ -23,7 +23,11 @@ module cache_group
     output         pmem_read,
     output         pmem_write,
     output [31:0]  pmem_address,
-    output [255:0] pmem_wdata
+    output [255:0] pmem_wdata,
+	 
+	 output logic l1i_hit,
+	 output logic l1d_hit,
+	 output logic l2_hit
 );
 
 // Internal Signals Instantiation
@@ -54,7 +58,8 @@ cache instruct_cache
     .pmem_read(i_read),
     .pmem_write(i_write),
     .pmem_address(i_addr),
-    .pmem_wdata(i_wdata)
+    .pmem_wdata(i_wdata),
+	 .is_hit(l1i_hit)
 );
 
 
@@ -74,7 +79,8 @@ cache data_cache
     .pmem_read(d_read),
     .pmem_write(d_write),
     .pmem_address(d_addr),
-    .pmem_wdata(d_wdata)
+    .pmem_wdata(d_wdata),
+	 .is_hit(l1d_hit)
 );
 
 arbiter arbiter

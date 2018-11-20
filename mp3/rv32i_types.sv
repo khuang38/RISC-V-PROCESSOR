@@ -10,7 +10,8 @@ typedef enum bit [6:0] {
     op_store = 7'b0100011, //store (S type)
     op_imm   = 7'b0010011, //arith ops with register/immediate operands (I type)
     op_reg   = 7'b0110011, //arith ops with register operands (R type)
-    op_csr   = 7'b1110011  //control and status register (I type)
+    op_csr   = 7'b1110011,  //control and status register (I type)
+	 op_getperf = 7'b1111000 //get performance counter
 } rv32i_opcode;
 
 typedef enum bit [2:0] {
