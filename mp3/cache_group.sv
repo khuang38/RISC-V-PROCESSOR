@@ -1,3 +1,4 @@
+// Updated on Nov 16 for adding L2 cache in the module
 module cache_group
 (
     input         clk,
@@ -39,7 +40,13 @@ logic [255:0] i_rdata;
 logic d_resp, d_write, d_read;
 logic [255:0] d_wdata;
 logic [31:0] d_addr;
-logic  [255:0] d_rdata;
+logic [255:0] d_rdata;
+
+// More Internal Signals for L2-Cache
+logic ab_resp, ab_read, ab_write;
+logic [255:0] ab_rdata;
+logic [31:0] ab_address;
+logic [255:0] ab_wdata;
 
 
 cache instruct_cache
@@ -101,6 +108,25 @@ arbiter arbiter
     .d_wdata,
     .d_addr,
     .d_rdata,
+
+    .pmem_resp(ab_resp),
+    .pmem_rdata(ab_rdata),
+    .pmem_read(ab_read),
+    .pmem_write(ab_write),
+    .pmem_address(ab_address),
+    .pmem_wdata(ab_wdata)
+);
+
+// Added to incorporate L2-Cache
+l2_cache l2_cache
+(
+    .clk,
+    .mem_resp(ab_resp),
+    .mem_rdata(ab_rdata),
+    .mem_read(ab_read),
+    .mem_write(ab_write),
+    .mem_address(ab_address),
+    .mem_wdata(ab_wdata),
 
     .pmem_resp,
     .pmem_rdata,

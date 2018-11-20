@@ -137,7 +137,7 @@ module cpu
     (
         .sel(insert_bubble),
         .a(ID_cw),
-        .b(0),
+        .b(32'h0),
         .f(ID_cw_out)
     );
 

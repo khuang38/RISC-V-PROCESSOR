@@ -1,7 +1,7 @@
 module mux2 #(parameter width = 32)
 (
 	input sel,
-	input [width - 1: 0] a, b,
+	input [width-1: 0] a, b,
 	output logic [width-1: 0] f
 );
 
