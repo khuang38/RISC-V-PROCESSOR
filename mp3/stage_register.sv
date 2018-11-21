@@ -19,10 +19,9 @@ end
 
 always_ff @(posedge clk)
 begin
-	 if (reset)
+	 if (reset) begin 
 		  data = 0;
-    else if (load)
-    begin
+    end else if (load) begin
         data = in;
     end
 end

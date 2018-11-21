@@ -21,7 +21,7 @@ ctrl.opcode = rv32i_opcode'(instruction[6:0]);
 ctrl.aluop = alu_add;
 ctrl.regfilemux_sel = 3'b00;
 ctrl.load_regfile = 1'b0;
-ctrl.mem_write = 1'b0;
+ctrl.mem_read = 1'b0;
 ctrl.mem_write = 1'b0;
 ctrl.pcmux_sel = 2'b00;
 ctrl.cmpmux_sel = 1'b0;
@@ -145,9 +145,9 @@ case(ctrl.opcode)
 			ctrl.is_branch = 1'b1;
 		end
 		
-		op_getperf: begin
+		op_csr: begin
 			ctrl.load_regfile = 1'b1;
-			rl.regfilemux_sel = 3'h4;
+			ctrl.regfilemux_sel = 3'h4;
 		end
 
 		op_jal: begin /*JAL*/

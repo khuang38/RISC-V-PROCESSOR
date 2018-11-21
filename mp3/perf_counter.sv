@@ -14,7 +14,7 @@ module perf_counter
 	input is_stall
 );
 
-logic [31:0] data;
+logic [31:0] data [32];
 logic l1i_last_miss, l1d_last_miss, l2_last_miss;
 initial
 begin

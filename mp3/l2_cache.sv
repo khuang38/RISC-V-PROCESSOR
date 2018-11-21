@@ -22,7 +22,9 @@ module l2_cache
 
     /* Signals to Arbiter */
     output logic mem_resp,
-    output [255:0] mem_rdata
+    output [255:0] mem_rdata,
+	 
+	 output logic is_hit
     );
 
 logic hit_0, hit_1;
@@ -39,6 +41,8 @@ logic load_lru;
 logic [1:0] pmem_sel;
 logic data_sel;
 logic load_pmem_wdata;
+
+assign is_hit = hit_0 | hit_1;
 
 cache_control control
 (

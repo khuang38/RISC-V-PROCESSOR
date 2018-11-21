@@ -84,6 +84,7 @@ module cpu
     logic [31:0] WB_reg_in;
 	 logic [31:0] MEM_reg_in;
 	 logic [4:0] ID_rs1, ID_rs2, WB_rd;
+	 logic load_if_id;
 
     assign ID_rs2 = ID_ins[24:20];
     assign ID_rs1 = ID_ins[19:15];
@@ -94,11 +95,13 @@ module cpu
         .instruction(ID_ins),
         .ctrl(ID_cw)
     );
+	 
+	 assign load_if_id = PPLINE_run & (~insert_bubble);
 
 	stage_register #(.width(64)) IF_ID
 	(
 		.clk(clk),
-		.load(PPLINE_run & (~insert_bubble)),
+		.load(load_if_id),
 		.reset(PPLINE_reset),
 		.in({IF_pc_out, IF_ins}),
 		.out({ID_pc, ID_ins})
@@ -228,12 +231,12 @@ module cpu
     // Stage MEM
     logic [31:0] MEM_data_b, MEM_ins, MEM_pc;
 
-    stage_register #(.width(32*4 + 1 + $bits(rv32i_control_word))) EXE_MEM
+    stage_register #(.width(32*5 + 1 + $bits(rv32i_control_word))) EXE_MEM
     (
         .clk(clk),
         .load(PPLINE_run),
 		  .reset(PPLINE_reset),
-        .in({EXE_cw, EXE_pc, EXE_perf_out, EXE_alu_out, EXE_data_b, EXE_ins, EXE_br_en}),
+        .in({EXE_cw, EXE_pc, EXE_perf_out, EXE_alu_out, EXE_alu_fwd_in2, EXE_ins, EXE_br_en}),
         .out({MEM_cw, MEM_pc, MEM_perf_out, MEM_alu_out, MEM_data_b, MEM_ins, MEM_br_en})
     );
 
@@ -259,7 +262,7 @@ module cpu
     assign WB_reg_sel = WB_cw.regfilemux_sel;
     assign WB_load_regfile = WB_cw.load_regfile;
 
-    stage_register #(.width(32*4 + 1 + $bits(rv32i_control_word))) MEM_WB
+    stage_register #(.width(32*5 + 1 + $bits(rv32i_control_word))) MEM_WB
     (
         .clk(clk),
         .load(PPLINE_run),
