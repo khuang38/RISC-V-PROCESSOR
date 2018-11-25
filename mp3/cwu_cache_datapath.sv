@@ -73,15 +73,15 @@ assign two_sel = byte_offset + 5'd2;
 assign three_sel = byte_offset + 5'd3;
 
 /* Assignment for physical memory signals */
-//assign pmem_wdata = cache_mux_out;
+assign pmem_wdata = cache_mux_out;
 
-register #(.width(256)) pmem_reg
-(
-	.clk,
-	.load(load_pmem_wdata),
-	.in(cache_mux_out),
-	.out(pmem_wdata)
-);
+// register #(.width(256)) pmem_reg
+// (
+// 	.clk,
+// 	.load(load_pmem_wdata),
+// 	.in(cache_mux_out),
+// 	.out(pmem_wdata)
+// );
 
 /* The cache way 0 */
 array data_array0
