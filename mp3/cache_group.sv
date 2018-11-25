@@ -11,7 +11,7 @@ module cache_group
     input [31:0]   cmem_address_a,
     input [31:0]   cmem_wdata_a,
 
-	output         cmem_resp_b,
+	 output         cmem_resp_b,
     output [31:0]  cmem_rdata_b,
     input          cmem_read_b,
     input          cmem_write_b,
@@ -24,7 +24,12 @@ module cache_group
     output         pmem_read,
     output         pmem_write,
     output [31:0]  pmem_address,
-    output [255:0] pmem_wdata
+    output [255:0] pmem_wdata,
+	 
+	 output logic l1i_hit,
+	 output logic l1d_hit,
+	 output logic l2_hit,
+	 output logic l2_read_or_write
 );
 
 // Signals from L1-Caches to L1-WB
@@ -78,7 +83,8 @@ cache instruct_cache
     .pmem_read(i_read),
     .pmem_write(i_write),
     .pmem_address(i_addr),
-    .pmem_wdata(i_wdata)
+    .pmem_wdata(i_wdata),
+	 .is_hit(l1i_hit)
 );
 
 write_evict_buffer instr_wb(
@@ -117,7 +123,8 @@ cache data_cache
     .pmem_read(d_read),
     .pmem_write(d_write),
     .pmem_address(d_addr),
-    .pmem_wdata(d_wdata)
+    .pmem_wdata(d_wdata),
+	 .is_hit(l1d_hit)
 );
 
 write_evict_buffer data_wb(
@@ -167,6 +174,9 @@ arbiter arbiter
     .pmem_wdata(ab_wdata)
 );
 
+
+assign l2_read_or_write = ab_read | ab_write;
+
 // Added to incorporate L2-Cache
 l2_cache l2_cache
 (
@@ -205,6 +215,7 @@ write_evict_buffer l2_wb(
     .pmem_wdata,
     .pmem_rdata,
     .pmem_resp
+	 .is_hit(l2_hit)
 );
 
 endmodule : cache_group

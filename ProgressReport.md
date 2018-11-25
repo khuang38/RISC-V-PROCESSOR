@@ -33,7 +33,7 @@ Oct 29, 2018 – Nov 4, 2018
 * [X] Test our pipeline CPU
 
 ## Checkpoint 3
-Oct 5, 2018 – Nov 17, 2018
+Nov 5, 2018 – Nov 17, 2018
 
 * [X] Change the CPU diagram to support forwarding
 * [X] Design the data forward unit and hazard detect unit
@@ -45,13 +45,13 @@ Oct 5, 2018 – Nov 17, 2018
 * [X] Test our pipeline CPU
 
 ## Checkpoint 4
-Oct 18, 2018 – Nov 24, 2018
+Nov 18, 2018 – Nov 24, 2018
 
-* [ ] Change the CPU diagram to support static branch prediction
-* [ ] Change the CPU diagram to support performance counters
-* [ ] Change the cache group diagram to support eviction write buffer
-* [ ] Develop static branch prediction
-* [ ] Develop performance counters
-* [ ] Develop eviction write buffer
-* [ ] Write test code to test our pipeline CPU
-* [ ] Test our pipeline CPU
+* [X] Change the CPU diagram to support static branch prediction
+* [X] Change the CPU diagram to support performance counters
+* [X] Change the cache group diagram to support eviction write buffer
+* [X] Develop static branch prediction
+* [X] Develop performance counters
+* [X] Develop eviction write buffer
+* [X] Write test code to test our pipeline CPU
+* [X] Test our pipeline CPU

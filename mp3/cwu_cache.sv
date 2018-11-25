@@ -23,6 +23,7 @@ module cache
 
     /* Signals to CPU */
     output logic mem_resp,
+	 output logic is_hit,
     output rv32i_word mem_rdata
     );
 
@@ -40,6 +41,8 @@ logic load_lru;
 logic [1:0] pmem_sel;
 logic data_sel;
 logic load_pmem_wdata;
+
+assign is_hit = hit_0 || hit_1;
 
 cache_control control
 (
