@@ -55,3 +55,15 @@ Nov 18, 2018 – Nov 24, 2018
 * [X] Develop eviction write buffer
 * [X] Write test code to test our pipeline CPU
 * [X] Test our pipeline CPU
+
+## Checkpoint 5
+Nov 25, 2018 - Dec 2, 2018
+
+* [ ] 4-way set-associative L2 cache
+* [ ] 4-way Pseudo LRU Policy
+* [ ] Local branch history table
+* [ ] Global 2-level branch history table
+* [ ] Tournament Branch Predictor
+* [ ] Write test code to test our pipeline CPU
+* [ ] Test our pipeline CPU
+
