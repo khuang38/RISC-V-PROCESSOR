@@ -25,11 +25,11 @@ module cache_group
     output         pmem_write,
     output [31:0]  pmem_address,
     output [255:0] pmem_wdata,
-	 
-	 output logic l1i_hit,
-	 output logic l1d_hit,
-	 output logic l2_hit,
-	 output logic l2_read_or_write
+
+	output logic l1i_hit,
+	output logic l1d_hit,
+	output logic l2_hit,
+	output logic l2_read_or_write
 );
 
 // Signals from L1-Caches to L1-WB
@@ -193,7 +193,8 @@ l2_cache l2_cache
     .pmem_read(l2_read),
     .pmem_write(l2_write),
     .pmem_address(l2_address),
-    .pmem_wdata(l2_wdata)
+    .pmem_wdata(l2_wdata),
+	.is_hit(l2_hit)
 );
 
 // Added WB in between L2-Cache and Physical Memory
@@ -215,7 +216,6 @@ write_evict_buffer l2_wb(
     .pmem_wdata,
     .pmem_rdata,
     .pmem_resp
-	 .is_hit(l2_hit)
 );
 
 endmodule : cache_group

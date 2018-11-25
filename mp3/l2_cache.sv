@@ -24,7 +24,7 @@ module l2_cache
     output logic mem_resp,
     output [255:0] mem_rdata,
 	 
-	 output logic is_hit
+	output logic is_hit
     );
 
 logic hit_0, hit_1;

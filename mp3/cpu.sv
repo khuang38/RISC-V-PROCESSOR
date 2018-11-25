@@ -19,11 +19,11 @@ module cpu
     output logic [3:0] cmem_byte_enable_b,
     output logic [31:0] cmem_address_b,
     output logic [31:0] cmem_wdata_b,
-	 
-	 input l1i_hit,
+
+	input l1i_hit,
     input l1d_hit,
-	 input l2_hit,
-	 input l2_read_or_write
+	input l2_hit,
+	input l2_read_or_write
 );
 	// pipe line control logic
 
@@ -95,7 +95,7 @@ module cpu
         .instruction(ID_ins),
         .ctrl(ID_cw)
     );
-	 
+
 	 assign load_if_id = PPLINE_run & (~insert_bubble);
 
 	stage_register #(.width(64)) IF_ID
@@ -120,8 +120,8 @@ module cpu
 	);
 
     // Stage EXE
-	 logic [31:0] EXE_pc, EXE_ins, EXE_data_a, EXE_data_b, EXE_perf_out, MEM_perf_out, WB_perf_out;
-	 logic [31:0] EXE_alu_in1, EXE_alu_in2,EXE_alu_fwd_in1, EXE_alu_fwd_in2, EXE_alu_out;
+	logic [31:0] EXE_pc, EXE_ins, EXE_data_a, EXE_data_b, EXE_perf_out, MEM_perf_out, WB_perf_out;
+	logic [31:0] EXE_alu_in1, EXE_alu_in2,EXE_alu_fwd_in1, EXE_alu_fwd_in2, EXE_alu_out;
     logic [1:0] EXE_alu_sel1;
     logic [2:0] EXE_alu_sel2;
     logic [31:0] EXE_i_imm, EXE_s_imm, EXE_b_imm, EXE_u_imm, EXE_j_imm;
@@ -145,7 +145,7 @@ module cpu
     (
         .sel(insert_bubble),
         .a(ID_cw),
-        .b(33'd0),
+        .b(35'd0),
         .f(ID_cw_out)
     );
 
@@ -163,8 +163,8 @@ module cpu
         .sel(EXE_alu_sel1),
         .a(EXE_alu_fwd_in1),
         .b(EXE_pc),
-    	  .c(32'h0),
-    	  .d(32'h0),
+    	.c(32'h0),
+    	.d(32'h0),
         .f(EXE_alu_in1)
     );
 
@@ -174,35 +174,34 @@ module cpu
         .i0(EXE_i_imm),
         .i1(EXE_u_imm),
         .i2(EXE_b_imm),
-	     .i3(EXE_s_imm),
-	     .i4(EXE_j_imm),
+	    .i3(EXE_s_imm),
+	    .i4(EXE_j_imm),
         .i5(EXE_alu_fwd_in2),
         .i6(32'h0),
         .i7(32'h0),
-	     .f(EXE_alu_in2)
+	    .f(EXE_alu_in2)
     );
 
 
-	 mux4 #(.width(32)) EXE_alu_fwd_mux1
+	mux4 #(.width(32)) EXE_alu_fwd_mux1
     (
         .sel(EXE_alu_fwd_mux_sel1),
         .a(EXE_data_a),
         .b(MEM_reg_in),
-    	  .c(WB_reg_in),
-    	  .d(32'h0),
+    	.c(WB_reg_in),
+    	.d(32'h0),
         .f(EXE_alu_fwd_in1)
     );
 
-	 mux4 #(.width(32)) EXE_alu_fwd_mux2
+	mux4 #(.width(32)) EXE_alu_fwd_mux2
     (
         .sel(EXE_alu_fwd_mux_sel2),
         .a(EXE_data_b),
         .b(MEM_reg_in),
-    	  .c(WB_reg_in),
-    	  .d(32'h0),
+    	.c(WB_reg_in),
+    	.d(32'h0),
         .f(EXE_alu_fwd_in2)
     );
-
 
 	alu EXE_alu
 	(
@@ -235,7 +234,7 @@ module cpu
     (
         .clk(clk),
         .load(PPLINE_run),
-		  .reset(PPLINE_reset),
+		.reset(PPLINE_reset),
         .in({EXE_cw, EXE_pc, EXE_perf_out, EXE_alu_out, EXE_alu_fwd_in2, EXE_ins, EXE_br_en}),
         .out({MEM_cw, MEM_pc, MEM_perf_out, MEM_alu_out, MEM_data_b, MEM_ins, MEM_br_en})
     );
@@ -255,7 +254,7 @@ module cpu
     // Stage WB
     logic [31:0] WB_alu_out, WB_rdata, WB_pc, WB_pc_plus_4, WB_mdr_mux_out;
     logic [2:0] WB_reg_sel;
-	 logic [2:0] WB_mdr_sel;
+	logic [2:0] WB_mdr_sel;
     logic WB_br_en;
 
 	assign WB_mdr_sel = WB_cw.mdr_sel;
@@ -266,7 +265,7 @@ module cpu
     (
         .clk(clk),
         .load(PPLINE_run),
-		  .reset(PPLINE_reset),
+		.reset(PPLINE_reset),
         .in({MEM_cw, MEM_pc, MEM_perf_out, MEM_alu_out, MEM_rdata, MEM_ins, MEM_br_en}),
         .out({WB_cw, WB_pc, WB_perf_out, WB_alu_out, WB_rdata, WB_ins, WB_br_en})
     );
@@ -295,27 +294,29 @@ module cpu
         .i1({31'h0, WB_br_en}),
         .i2(WB_alu_out),
         .i3(WB_pc_plus_4),
-		  .i4(WB_perf_out),
-		  .i5(32'h0),
-		  .i6(32'h0),
-		  .i7(32'h0),
+		.i4(WB_perf_out),
+		.i5(32'h0),
+		.i6(32'h0),
+		.i7(32'h0),
         .f(WB_reg_in)
     );
-	 logic [31:0] MEM_pc_plus_4;
-	 logic [2:0] MEM_reg_sel;
-	 assign MEM_reg_sel = MEM_cw.regfilemux_sel;
-	 assign MEM_pc_plus_4 = MEM_pc + 32'h4;
-	 mux8 mem_mux
+
+	logic [31:0] MEM_pc_plus_4;
+	logic [2:0] MEM_reg_sel;
+	assign MEM_reg_sel = MEM_cw.regfilemux_sel;
+	assign MEM_pc_plus_4 = MEM_pc + 32'h4;
+
+	mux8 mem_mux
     (
         .sel(MEM_reg_sel),
         .i0(32'h0),
         .i1({31'h0, MEM_br_en}),
         .i2(MEM_alu_out),
         .i3(MEM_pc_plus_4),
-		  .i4(MEM_perf_out),
-		  .i5(32'h0),
-		  .i6(32'h0),
-		  .i7(32'h0),
+		.i4(MEM_perf_out),
+		.i5(32'h0),
+		.i6(32'h0),
+		.i7(32'h0),
         .f(MEM_reg_in)
     );
 
@@ -348,22 +349,21 @@ module cpu
 		.id_rs2(ID_rs2),
 		.insert_bubble(insert_bubble)
 	);
-	
+
     perf_counter perf_cnter(
-	 .clk(clk),
-    .read_src(EXE_rs1),
-	 .read_data(EXE_perf_out),
-	 .l1i_hit(l1i_hit),
-	 .l1d_hit(l1d_hit),
-	 .l2_hit(l2_hit),
-	 .l1i_read_or_write(cmem_read_a | cmem_write_a),
-	 .l1d_read_or_write(cmem_read_b | cmem_write_b),
-	 .l2_read_or_write(l2_read_or_write),
-	 .is_branch(MEM_cw.is_branch),
-	 .br_en(MEM_br_en),
-	 .is_stall( (~PPLINE_run) | insert_bubble)
+	    .clk(clk),
+        .read_src(EXE_rs1),
+	    .read_data(EXE_perf_out),
+	    .l1i_hit(l1i_hit),
+	    .l1d_hit(l1d_hit),
+	    .l2_hit(l2_hit),
+	    .l1i_read_or_write(cmem_read_a | cmem_write_a),
+	    .l1d_read_or_write(cmem_read_b | cmem_write_b),
+	    .l2_read_or_write(l2_read_or_write),
+	    .is_branch(MEM_cw.is_branch),
+	    .br_en(MEM_br_en),
+	    .is_stall( (~PPLINE_run) | insert_bubble)
 );
-	
-	
+
+
 endmodule : cpu
-	
