@@ -28,13 +28,15 @@ module cpu
 	// pipe line control logic
 
 	logic pc_mux_sel;
+	logic is_if_branch;
 
-
+	 logic btb_resp;
     logic PPLINE_reset;
 	 assign PPLINE_reset = pc_mux_sel;
 
 	 logic PPLINE_run;
-    assign PPLINE_run = !((cmem_read_a & !cmem_resp_a) | ((cmem_write_b | cmem_read_b) & !cmem_resp_b));
+    assign PPLINE_run = !((cmem_read_a & !cmem_resp_a) | ((cmem_write_b | cmem_read_b) & !cmem_resp_b) 
+									| (is_if_branch & ~btb_resp));
 
 
     logic [1:0] EXE_alu_fwd_mux_sel1, EXE_alu_fwd_mux_sel2;
@@ -81,10 +83,10 @@ module cpu
 	logic [31:0] ID_pc, ID_ins, WB_ins;
 	logic [31:0] ID_data_a, ID_data_b;
 	logic WB_load_regfile;
-    logic [31:0] WB_reg_in;
-	 logic [31:0] MEM_reg_in;
-	 logic [4:0] ID_rs1, ID_rs2, WB_rd;
-	 logic load_if_id;
+   logic [31:0] WB_reg_in;
+	logic [31:0] MEM_reg_in;
+	logic [4:0] ID_rs1, ID_rs2, WB_rd;
+	logic load_if_id;
 
     assign ID_rs2 = ID_ins[24:20];
     assign ID_rs1 = ID_ins[19:15];
@@ -97,6 +99,19 @@ module cpu
     );
 
 	 assign load_if_id = PPLINE_run & (~insert_bubble);
+	 
+	 logic [31:0] btb_output_pc;
+	 
+	
+	 assign is_if_branch = IF_ins[6:0] ==7'b1100011;
+	 btb btb_ins(
+		.clk(clk),
+		.input_pc(IF_pc_out),
+		.input_ins(IF_ins),
+		.read(is_if_branch),
+		.output_pc(btb_output_pc),
+		.btb_resp(btb_resp)
+	);
 
 	stage_register #(.width(64)) IF_ID
 	(
