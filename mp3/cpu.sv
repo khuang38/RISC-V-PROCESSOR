@@ -31,10 +31,10 @@ module cpu
 
 
     logic PPLINE_reset;
-	assign PPLINE_reset = pc_mux_sel;
+	 assign PPLINE_reset = pc_mux_sel;
 
-	logic PPLINE_run;
-    assign PPLINE_run = PPLINE_reset | !((cmem_read_a & !cmem_resp_a) | ((cmem_write_b | cmem_read_b) & !cmem_resp_b));
+	 logic PPLINE_run;
+    assign PPLINE_run = !((cmem_read_a & !cmem_resp_a) | ((cmem_write_b | cmem_read_b) & !cmem_resp_b));
 
 
     logic [1:0] EXE_alu_fwd_mux_sel1, EXE_alu_fwd_mux_sel2;
