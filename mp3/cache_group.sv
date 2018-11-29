@@ -87,26 +87,6 @@ cache instruct_cache
 	 .is_hit(l1i_hit)
 );
 
-write_evict_buffer instr_wb(
-    .clk,
-
-    // Connections between cache and the write eviction buffer
-    .cmem_read(i_read),
-    .cmem_write(i_write),
-    .cmem_address(i_addr),
-    .cmem_wdata(i_wdata),
-    .cmem_rdata(i_rdata),
-    .cmem_resp(i_resp),
-
-    // Connections between write eviction buffer and the 'physical memory' seen by WB
-    .pmem_read(i_wb_read),
-    .pmem_write(i_wb_write),
-    .pmem_address(i_wb_addr),
-    .pmem_wdata(i_wb_wdata),
-    .pmem_rdata(i_wb_rdata),
-    .pmem_resp(i_wb_resp)
-);
-
 cache data_cache
 (
     .clk,
@@ -151,12 +131,12 @@ arbiter arbiter
 (
     .clk,
 
-    .i_resp(i_wb_resp),
-    .i_write(i_wb_write),
-    .i_read(i_wb_read),
-    .i_wdata(i_wb_wdata),
-    .i_addr(i_wb_addr),
-    .i_rdata(i_wb_rdata),
+    .i_resp,
+    .i_write,
+    .i_read,
+    .i_wdata,
+    .i_addr,
+    .i_rdata,
 
     // Signals for data cache
     .d_resp(d_wb_resp),
