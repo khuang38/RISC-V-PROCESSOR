@@ -1,6 +1,7 @@
 module perf_counter
 (
 	input clk,
+	input clear,
    input[4:0] read_src,
 	output logic[31:0] read_data,
 	input l1i_hit,
@@ -10,7 +11,7 @@ module perf_counter
 	input l1d_read_or_write,
 	input l2_read_or_write,
 	input is_branch,
-	input br_en,
+	input is_mispredict,
 	input is_stall
 );
 
@@ -49,16 +50,15 @@ begin
 	l1i_last_miss <= l1i_read_or_write & (~l1i_hit);
 	l1d_last_miss <= l1d_read_or_write & (~l1d_hit);
 	l2_last_miss <= l2_read_or_write & (~l2_hit);
-	data[0] <= (l1i_read_or_write & l1i_hit & (~l1i_last_miss)) ? data[0] + 1 : data[0];
-	data[1] <= (l1i_read_or_write & (~l1i_hit) & (~l1i_last_miss)) ? data[1] + 1 : data[1];
-	data[2] <= (l1d_read_or_write & l1d_hit & (~l1d_last_miss)) ? data[2] + 1 : data[2];
-	data[3] <= (l1d_read_or_write & (~l1d_hit) & (~l1d_last_miss)) ? data[3] + 1 : data[3];
-	data[4] <= (l2_read_or_write & l2_hit & (~l2_last_miss)) ? data[4] + 1 : data[4];
-	data[5] <= (l2_read_or_write & (~l2_hit) & (~l2_last_miss)) ? data[5] + 1 : data[5];
-	
-	data[6] <= is_branch ? data[6] + 1 : data[6];
-	data[7] <= (is_branch & br_en) ? data[7] + 1: data[7];
-	data[8] <= is_stall ? data[8] + 1 : data[8];
+	data[0] <= (clear && read_src == 0) ? 0 : ((l1i_read_or_write & l1i_hit & (~l1i_last_miss)) ? data[0] + 1 : data[0]);
+	data[1] <= (clear && read_src == 1) ? 0 : ((l1i_read_or_write & (~l1i_hit) & (~l1i_last_miss)) ? data[1] + 1 : data[1]);
+	data[2] <= (clear && read_src == 2) ? 0 : ((l1d_read_or_write & l1d_hit & (~l1d_last_miss)) ? data[2] + 1 : data[2]);
+	data[3] <= (clear && read_src == 3) ? 0 : ((l1d_read_or_write & (~l1d_hit) & (~l1d_last_miss)) ? data[3] + 1 : data[3]);
+	data[4] <= (clear && read_src == 4) ? 0 : ((l2_read_or_write & l2_hit & (~l2_last_miss)) ? data[4] + 1 : data[4]);
+	data[5] <= (clear && read_src == 5) ? 0 : ((l2_read_or_write & (~l2_hit) & (~l2_last_miss)) ? data[5] + 1 : data[5]);
+	data[6] <= (clear && read_src == 6) ? 0 : (is_branch ? data[6] + 1 : data[6]);
+	data[7] <= (clear && read_src == 7) ? 0 : ((is_branch & is_mispredict) ? data[7] + 1: data[7]);
+	data[8] <= (clear && read_src == 8) ? 0 : (is_stall ? data[8] + 1 : data[8]);
 end
 
 

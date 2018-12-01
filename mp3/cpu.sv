@@ -26,13 +26,15 @@ module cpu
 	input l2_read_or_write
 );
 	// pipe line control logic
-
-	logic pc_mux_sel;
+	logic is_mispredict;
+	logic IF_branch_prediction, ID_branch_prediction, EXE_branch_prediction, MEM_branch_prediction;
+	logic [1:0] pc_mux_sel;
 	logic is_if_branch;
 
+    logic [31:0] MEM_data_b, MEM_ins, MEM_pc;
 	 logic btb_resp;
     logic PPLINE_reset;
-	 assign PPLINE_reset = pc_mux_sel;
+	 assign PPLINE_reset = is_mispredict;
 
 	 logic PPLINE_run;
     assign PPLINE_run = !((cmem_read_a & !cmem_resp_a) | ((cmem_write_b | cmem_read_b) & !cmem_resp_b) 
@@ -69,13 +71,29 @@ module cpu
     	.out(IF_pc_out)
 	);
 
-	assign pc_mux_sel = (MEM_pc_sel == 2'h1 & MEM_br_en) | (MEM_pc_sel == 2'h2);
-    mux2 #(.width(32)) pc_mux
+	
+	assign is_mispredict = (MEM_pc_sel == 2'h1 & MEM_br_en != MEM_branch_prediction) | (MEM_pc_sel == 2'h2);
+	assign pc_mux_sel = is_mispredict ? (MEM_br_en ? 2'h1 : 2'h2): 2'h0;
+	
+	logic [31:0] IF_pc_prediction;
+	logic [31:0] btb_output_pc;
+	 
+	mux2 #(.width(32)) pc_prediction_mux
+    (
+        .sel(is_if_branch & IF_branch_prediction),
+        .a(IF_pc_out + 32'h4),
+        .b(btb_output_pc),
+        .f(IF_pc_prediction)
+    );
+	
+    mux4 #(.width(32)) pc_mux
     (
         .sel(pc_mux_sel),
-        .a(IF_pc_out + 32'h4),
+        .a(IF_pc_prediction),
         .b(MEM_alu_out),
-        .f(IF_pc_in)
+        .c(MEM_pc + 32'h4),
+		  .d(32'h0),
+		  .f(IF_pc_in)
     );
 
 
@@ -100,7 +118,6 @@ module cpu
 
 	 assign load_if_id = PPLINE_run & (~insert_bubble);
 	 
-	 logic [31:0] btb_output_pc;
 	 
 	
 	 assign is_if_branch = IF_ins[6:0] ==7'b1100011;
@@ -108,18 +125,18 @@ module cpu
 		.clk(clk),
 		.input_pc(IF_pc_out),
 		.input_ins(IF_ins),
-		.read(is_if_branch),
+		.read(is_if_branch && cmem_resp_a),
 		.output_pc(btb_output_pc),
 		.btb_resp(btb_resp)
 	);
 
-	stage_register #(.width(64)) IF_ID
+	stage_register #(.width(64 + 1)) IF_ID
 	(
 		.clk(clk),
 		.load(load_if_id),
 		.reset(PPLINE_reset),
-		.in({IF_pc_out, IF_ins}),
-		.out({ID_pc, ID_ins})
+		.in({IF_branch_prediction, IF_pc_out, IF_ins}),
+		.out({ID_branch_prediction, ID_pc, ID_ins})
 	);
 
 	regfile ID_reg_file
@@ -164,13 +181,13 @@ module cpu
         .f(ID_cw_out)
     );
 
-	stage_register #(.width(32 * 4 + $bits(rv32i_control_word))) ID_EXE
+	stage_register #(.width(32 * 4 + $bits(rv32i_control_word) + 1)) ID_EXE
 	(
 		.clk(clk),
 		.load(PPLINE_run),
 		.reset(PPLINE_reset),
-		.in({ID_cw_out, ID_pc, ID_ins, ID_data_a, ID_data_b}),
-		.out({EXE_cw, EXE_pc, EXE_ins, EXE_data_a, EXE_data_b})
+		.in({ID_branch_prediction, ID_cw_out, ID_pc, ID_ins, ID_data_a, ID_data_b}),
+		.out({EXE_branch_prediction, EXE_cw, EXE_pc, EXE_ins, EXE_data_a, EXE_data_b})
 	);
 
 	mux4 #(.width(32)) EXE_alu_mux1
@@ -243,15 +260,14 @@ module cpu
     );
 
     // Stage MEM
-    logic [31:0] MEM_data_b, MEM_ins, MEM_pc;
 
-    stage_register #(.width(32*5 + 1 + $bits(rv32i_control_word))) EXE_MEM
+    stage_register #(.width(32*5 + 1 + 1 + $bits(rv32i_control_word))) EXE_MEM
     (
         .clk(clk),
         .load(PPLINE_run),
-		.reset(PPLINE_reset),
-        .in({EXE_cw, EXE_pc, EXE_perf_out, EXE_alu_out, EXE_alu_fwd_in2, EXE_ins, EXE_br_en}),
-        .out({MEM_cw, MEM_pc, MEM_perf_out, MEM_alu_out, MEM_data_b, MEM_ins, MEM_br_en})
+		  .reset(PPLINE_reset),
+        .in({EXE_branch_prediction, EXE_cw, EXE_pc, EXE_perf_out, EXE_alu_out, EXE_alu_fwd_in2, EXE_ins, EXE_br_en}),
+        .out({MEM_branch_prediction, MEM_cw, MEM_pc, MEM_perf_out, MEM_alu_out, MEM_data_b, MEM_ins, MEM_br_en})
     );
 
     logic [31:0] MEM_rdata;
@@ -367,7 +383,8 @@ module cpu
 
     perf_counter perf_cnter(
 	    .clk(clk),
-        .read_src(EXE_rs1),
+		 .clear(EXE_cw.regfilemux_sel == 3'h4),
+       .read_src(EXE_rs1),
 	    .read_data(EXE_perf_out),
 	    .l1i_hit(l1i_hit),
 	    .l1d_hit(l1d_hit),
@@ -376,8 +393,17 @@ module cpu
 	    .l1d_read_or_write(cmem_read_b | cmem_write_b),
 	    .l2_read_or_write(l2_read_or_write),
 	    .is_branch(MEM_cw.is_branch),
-	    .br_en(MEM_br_en),
+	    .is_mispredict(is_mispredict),
 	    .is_stall( (~PPLINE_run) | insert_bubble)
+	);
+	
+	tournament_predictor tp(
+	.clk(clk),
+	.read_pc(IF_pc_out),
+	.prediction(IF_branch_prediction),
+	.write_pc(MEM_pc),
+	.write(MEM_cw.is_branch),
+	.write_value(MEM_br_en)
 );
 
 

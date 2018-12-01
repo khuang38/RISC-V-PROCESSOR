@@ -41,13 +41,13 @@ module btb
  
 
 logic hit_0, hit_1;
-logic valid_out_0, dirty_out_0;
-logic valid_out_1, dirty_out_1;
+logic valid_out_0; 
+logic valid_out_1;
 logic lru_out;
-logic load_data_0, load_tag_0, load_valid_0, load_dirty_0;
-logic load_data_1, load_tag_1, load_valid_1, load_dirty_1;
+logic load_data_0, load_tag_0, load_valid_0;
+logic load_data_1, load_tag_1, load_valid_1;
 
-logic valid_in, dirty_in, lru_in;
+logic valid_in,lru_in;
 logic way_sel;
 logic load_lru;
 
@@ -55,12 +55,12 @@ logic [1:0] pmem_sel;
 logic data_sel;
 logic load_pmem_wdata;
 
+logic output_sel;
 
 
-cache_control control
+btb_cache_control control
 (
     .clk,
-    .mem_byte_enable(4'b1111),
     .mem_read,
     .mem_write,
     .pmem_resp,
@@ -70,28 +70,26 @@ cache_control control
     .hit_0,
     .hit_1,
     .valid_out_0,
-    .dirty_out_0,
     .valid_out_1,
-    .dirty_out_1,
     .lru_out,
     .load_data_0,
     .load_tag_0,
     .load_valid_0,
-    .load_dirty_0,
     .load_data_1,
     .load_tag_1,
     .load_valid_1,
-    .load_dirty_1,
     .valid_in,
-    .dirty_in,
     .way_sel,
     .load_lru,
     .lru_in,
     .pmem_sel,
     .load_pmem_wdata,
-    .data_sel
+    .data_sel,
+	 .output_sel
     );
 
+	 logic[31:0] mem_rdata_from_datapath;
+	 
 btb_cache_datapath datapath
 (
     .clk,
@@ -101,13 +99,10 @@ btb_cache_datapath datapath
     .load_data_0,
     .load_tag_0,
     .load_valid_0,
-    .load_dirty_0,
     .load_data_1,
     .load_tag_1,
     .load_valid_1,
-    .load_dirty_1,
     .valid_in,
-    .dirty_in,
     .way_sel,
     .load_lru,
     .lru_in,
@@ -116,14 +111,14 @@ btb_cache_datapath datapath
 	 .load_pmem_wdata,
     .pmem_address,
     .pmem_wdata,
-    .mem_rdata,
+    .mem_rdata(mem_rdata_from_datapath),
     .hit_0,
     .hit_1,
     .valid_out_0,
-    .dirty_out_0,
     .valid_out_1,
-    .dirty_out_1,
     .lru_out
     );
+	 
+	 assign mem_rdata = output_sel ? pmem_rdata : mem_rdata_from_datapath;
 
 endmodule: btb

@@ -16,15 +16,15 @@ module btb_cache_datapath
     input logic load_data_0,
     input logic load_tag_0,
     input logic load_valid_0,
-    input logic load_dirty_0,
+   // input logic load_dirty_0,
 
     input logic load_data_1,
     input logic load_tag_1,
     input logic load_valid_1,
-    input logic load_dirty_1,
+   // input logic load_dirty_1,
 
     input logic valid_in,
-    input logic dirty_in,
+   // input logic dirty_in,
     input logic way_sel,
 
     input logic load_lru,
@@ -45,9 +45,9 @@ module btb_cache_datapath
     output logic hit_0,
     output logic hit_1,
     output logic valid_out_0,
-    output logic dirty_out_0,
+   // output logic dirty_out_0,
     output logic valid_out_1,
-    output logic dirty_out_1,
+   // output logic dirty_out_1,
 
     output logic lru_out
     );
@@ -55,8 +55,8 @@ module btb_cache_datapath
 /* All the necesssary internal signals */
 logic [2:0] index;
 logic [4:0] byte_offset;
-logic [23:0] tag_in;
-logic [23:0] tag_0, tag_1;
+logic [26:0] tag_in;
+logic [26:0] tag_0, tag_1;
 logic [31:0] data_0, data_1;
 logic [31:0] cache_mux_out;
 // logic [31:0] write_cache_out;
@@ -110,16 +110,7 @@ array #(.width(1)) valid_array0
     .dataout(valid_out_0)
     );
 
-array #(.width(1)) dirty_array0
-(
-    .clk,
-    .write(load_dirty_0),
-    .index,
-    .datain(dirty_in),
-    .dataout(dirty_out_0)
-    );
-
-comparator compare_0
+comparator #(.width(27)) compare_0
 (
     .a(tag_in),
     .b(tag_0),
@@ -156,16 +147,7 @@ array #(.width(1)) valid_array1
     .dataout(valid_out_1)
     );
 
-array #(.width(1)) dirty_array1
-(
-    .clk,
-    .write(load_dirty_1),
-    .index,
-    .datain(dirty_in),
-    .dataout(dirty_out_1)
-    );
-
-comparator compare_1
+comparator #(.width(27)) compare_1
 (
     .a(tag_in),
     .b(tag_1),

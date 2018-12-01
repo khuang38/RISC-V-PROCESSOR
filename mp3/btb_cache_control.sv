@@ -1,135 +1,159 @@
-module cache_control
-(
-    input              clk,
+module btb_cache_control(
+    input clk,
 
-    output logic       cmem_resp,
-    input              cmem_read,
-    input              cmem_write,
-    input              pmem_resp,
-    output logic       pmem_read,
-    output logic       pmem_write,
+    input mem_read,
+    input mem_write,
 
-    input              hit0,
-    input              hit1,
-    input              dirty0,
-    input              dirty1,
-    input              lru_out,
+    /* Signals from P-memory */
+    input pmem_resp,
 
-    output logic       load_lru,
-    output logic       load_dirty0,
-    output logic       load_dirty1,
-    output logic       load_data0,
-    output logic       load_data1,
-    output logic       load_tag0,
-    output logic       load_tag1,
-    output logic       load_valid0,
-    output logic       load_valid1,
+    /* Signals to P-memory */
+    output logic pmem_read,
+    output logic pmem_write,
 
-    output logic       datain_sel,
-    output logic [1:0] addr_sel
+    /* Signals to CPU */
+    output logic mem_resp,
 
-);
+    /* Signal from Cache Datapath */
+    input logic hit_0,
+    input logic hit_1,
+    input logic valid_out_0,
+    input logic valid_out_1,
 
-   enum int unsigned{
-      idle, read, flush
-   } state, next_state;
+    input logic lru_out,
 
-   always_ff @(posedge clk)
-     begin
-        state <= next_state;
-     end
+    /* Signal send to Cache Datapath */
+    output logic load_data_0,
+    output logic load_tag_0,
+    output logic load_valid_0,
 
-   always_comb
-     begin
-        next_state = state;
-        case (state)
-          idle:begin
-             if(!(hit0 || hit1)) begin
-                if ((lru_out && dirty1) || (!lru_out && dirty0))begin
-                   next_state = flush;
-                end else begin
-                   next_state = read;
+    output logic load_data_1,
+    output logic load_tag_1,
+    output logic load_valid_1,
+
+    output logic valid_in,
+    output logic way_sel,
+
+    output logic load_lru,
+    output logic lru_in,
+    output logic [1:0] pmem_sel,
+    output logic load_pmem_wdata,
+    output logic data_sel,
+	 output logic output_sel
+    );
+
+enum int unsigned {
+    /* All the states, needs to be modified for the final CP */
+    // idle,    // Not really useful
+    read_write,
+    access_pmem
+} state, next_state;
+
+always_comb
+begin : state_actions
+    /* Default output assignments */
+    pmem_read = 1'b0;
+    pmem_write = 1'b0;
+	 output_sel = 1'b0;
+    mem_resp = 1'b0;
+
+    load_data_0 = 1'b0;
+    load_tag_0 = 1'b0;
+    load_valid_0 = 1'b0;
+
+    load_data_1 = 1'b0;
+    load_tag_1 = 1'b0;
+    load_valid_1 = 1'b0;
+
+    load_lru = 1'b0;
+    way_sel = 1'b0;
+    valid_in = 1'b0;
+    lru_in = 1'b0;
+
+    pmem_sel = 2'b00;
+    data_sel = 1'b0;
+    load_pmem_wdata = 1'b0;
+
+    case(state)
+        // idle: // waiting for responses
+
+        read_write: begin
+            if (mem_read == 1) begin
+                //read
+                if (hit_0 == 1) begin
+                    way_sel = 0;
+                    mem_resp = 1;
+                    lru_in = 1;
+                    load_lru = 1;
                 end
-             end
-          end
-          read:begin
-             if(pmem_resp) begin
-                next_state = idle;
-             end else begin
-                next_state = read;
-             end
-          end
-          flush:begin
-             if(pmem_resp) begin
-                next_state = read;
-             end else begin
-                next_state = flush;
-             end
-          end
-        endcase // case (state)
-     end
 
-
-   always_comb
-     begin
-        load_lru = 0;
-        load_dirty0 = 0;
-        load_dirty1 = 0;
-        load_data0 = 0;
-        load_data1 = 0;
-        load_tag0 = 0;
-        load_tag1 = 0;
-        load_valid0 = 0;
-        load_valid1 = 0;
-        addr_sel = 0;
-        datain_sel = 0;
-        pmem_read = 0;
-        pmem_write = 0;
-        cmem_resp = 0;
-        case (state)
-          idle: begin
-             if (cmem_read && (hit0 || hit1)) begin
-                // hit
-                cmem_resp = 1;
-                load_lru = 1;
-             end else if (cmem_write && (hit0 || hit1)) begin
-                datain_sel = 1;
-                load_lru = 1;
-                cmem_resp = 1;
-                if(hit0) begin
-                   load_data0 = 1;
-                   load_dirty0 = 1;
-                end else begin
-                   load_data1 = 1;
-                   load_dirty1 = 1;
+                else if (hit_1 == 1) begin
+                    way_sel = 1;
+                    mem_resp = 1;
+                    lru_in = 0;
+                    load_lru = 1;
                 end
-             end
-          end
-          read: begin
-             pmem_read = 1;
-             if(lru_out) begin
-                load_dirty1 = 1;
-                load_tag1 = 1;
-                load_valid1 = 1;
-                if(pmem_resp) load_data1 = 1;
-             end else begin
-                load_dirty0 = 1;
-                load_tag0 = 1;
-                load_valid0 = 1;
-                if(pmem_resp) load_data0 = 1;
-               end
-          end
-          flush: begin
-             pmem_write = 1;
-             if(lru_out) begin
-                addr_sel = 2;
-             end else begin
-                addr_sel = 1;
-             end
-          end
-        endcase // case (state)
-     end
 
+                else begin      // If we missed
+                    way_sel = 0;
+                    mem_resp = 0;
+                    lru_in = 0;
+                    load_lru = 0;
+                end
+            end
+        end
 
+        access_pmem: begin
+            pmem_read = 1;
+            valid_in = 1;
+				mem_resp = 1;
+				output_sel = 1;
+            if (lru_out == 0) begin     // Accessing Cache Way 0
+                way_sel = 0;
+                load_data_0 = 1;
+                load_tag_0 = 1;
+                load_valid_0 = 1;
+            end
 
-endmodule : cache_control
+            else if (lru_out == 1) begin     // Accessing Cache Way 1
+                way_sel = 1;
+                load_data_1 = 1;
+                load_tag_1 = 1;
+                load_valid_1 = 1;
+            end
+
+            else begin
+            /* Do Nothing */
+            end
+        end
+    endcase
+end
+
+always_comb
+begin : next_state_logic
+     next_state = state;
+
+     case (state)
+        read_write: begin
+            if (mem_read) begin
+                if (hit_0 == 1 || hit_1 == 1)begin// If there is a hit in Cache Way, looping
+                    next_state = read_write;
+                end else begin
+                    next_state = access_pmem;
+                end
+            end
+        end
+
+        access_pmem: begin
+            next_state = read_write;
+        end
+     endcase
+end
+
+always_ff @(posedge clk)
+begin: next_state_assignment
+    /* Assignment of next state on clock edge */
+    state <= next_state;
+end
+
+endmodule : btb_cache_control
