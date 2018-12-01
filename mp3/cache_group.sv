@@ -11,7 +11,7 @@ module cache_group
     input [31:0]   cmem_address_a,
     input [31:0]   cmem_wdata_a,
 
-	 output         cmem_resp_b,
+	output         cmem_resp_b,
     output [31:0]  cmem_rdata_b,
     input          cmem_read_b,
     input          cmem_write_b,
