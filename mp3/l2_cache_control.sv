@@ -64,7 +64,7 @@ module l2_cache_control
 
     output logic load_lru,
     output logic [2:0] lru_in,
-    output logic [1:0] pmem_sel,
+    output logic [2:0] pmem_sel,
     output logic load_pmem_wdata,
     output logic data_sel
     );
@@ -111,7 +111,7 @@ begin : state_actions
     dirty_in = 1'b0;
     lru_in = 3'b000;
 
-    pmem_sel = 2'b00;
+    pmem_sel = 3'b000;
     data_sel = 1'b0;
     load_pmem_wdata = 1'b0;
 
@@ -256,7 +256,7 @@ begin : state_actions
             load_pmem_wdata = 1'b1;
             if (lru_out[1] == 1'b1 && lru_out[0] == 1'b1) begin
                 way_sel = 2'b00;
-                pmem_sel = 2'b01;
+                pmem_sel = 3'b001;
                 pmem_write = 1;
                 dirty_in = 0;
                 load_dirty_0 = 1;
@@ -264,7 +264,7 @@ begin : state_actions
 
             else if (lru_out[1] == 1'b0 && lru_out[0] == 1'b1) begin
                 way_sel = 2'b01;
-                pmem_sel = 2'b10;
+                pmem_sel = 3'b010;
                 pmem_write = 1;
                 dirty_in = 0;
                 load_dirty_1 = 1;
@@ -272,7 +272,7 @@ begin : state_actions
 
             else if (lru_out[2] == 1'b1 && lru_out[0] == 1'b0) begin
                 way_sel = 2'b10;
-                pmem_sel = 2'b10;
+                pmem_sel = 3'b011;
                 pmem_write = 1;
                 dirty_in = 0;
                 load_dirty_2 = 1;
@@ -280,7 +280,7 @@ begin : state_actions
 
             else if (lru_out[2] == 1'b0 && lru_out[0] == 1'b0) begin
                 way_sel = 2'b11;
-                pmem_sel = 2'b10;
+                pmem_sel = 3'b100;
                 pmem_write = 1;
                 dirty_in = 0;
                 load_dirty_3 = 1;
@@ -320,7 +320,7 @@ begin : next_state_logic
 
                     else if (dirty_out_3 == 1 && lru_out[2] == 1'b0 && lru_out[0] == 1'b0) begin    // Need to write back Way D
                         next_state = write_back;
-                    end 
+                    end
 
                     else begin
                         next_state = access_pmem;	// Stay conflicted for now

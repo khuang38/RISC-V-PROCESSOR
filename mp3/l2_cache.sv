@@ -43,7 +43,7 @@ logic [2:0] lru_in;
 logic [1:0] way_sel;
 logic load_lru;
 
-logic [1:0] pmem_sel;
+logic [2:0] pmem_sel;
 logic data_sel;
 logic load_pmem_wdata;
 

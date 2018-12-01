@@ -40,7 +40,7 @@ module l2_cache_datapath
     input logic load_lru,
     input logic [2:0] lru_in,
 
-    input logic [1:0] pmem_sel,
+    input logic [2:0] pmem_sel,
     input logic data_sel,
 	input logic load_pmem_wdata,
 
@@ -318,13 +318,18 @@ mux4 #(.width(256)) cache_way_mux
     );
 
 /* Physical Memory Address Mux */
-mux4 pmem_add_mux
+/* Physical Memory Address Mux */
+mux8 pmem_add_mux
 (
   .sel(pmem_sel),
-  .a({mem_address[31:5], 5'b00000}),
-  .b({tag_0, index[3:1], 5'b00000}),
-  .c({tag_1, index[3:1], 5'b00000}),
-  .d(32'hXXXXXXXX),
+  .i0({mem_address[31:5], 5'b00000}),
+  .i1({tag_0, index[3:1], 5'b00000}),
+  .i2({tag_1, index[3:1], 5'b00000}),
+  .i3({tag_2, index[3:1], 5'b00000}),
+  .i4({tag_3, index[3:1], 5'b00000}),
+  .i5(32'hXXXXXXXX),
+  .i6(32'hXXXXXXXX),
+  .i7(32'hXXXXXXXX),
   .f(pmem_address)
   );
 
