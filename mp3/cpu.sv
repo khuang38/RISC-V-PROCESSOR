@@ -21,21 +21,15 @@ module cpu
     output logic [31:0] cmem_wdata_b,
 
 	input l1i_hit,
-    input l1d_hit,
+   input l1d_hit,
 	input l2_hit,
 	input l2_read_or_write
 );
-	always @(posedge clk) begin
-		if(cmem_write_b && cmem_resp_b) begin
-			$display("write_l1d %h %h %h", cmem_address_b, cmem_wdata_b, cmem_byte_enable_b);
-		end
-	end
-
 	// pipe line control logic
-	logic is_mispredict;
-	logic IF_branch_prediction, ID_branch_prediction, EXE_branch_prediction, MEM_branch_prediction;
-	logic [1:0] pc_mux_sel;
-	logic is_if_branch;
+	 logic is_mispredict;
+	 logic IF_branch_prediction, ID_branch_prediction, EXE_branch_prediction, MEM_branch_prediction;
+	 logic [1:0] pc_mux_sel;
+	 logic IF_is_branch, IF_is_jal;
 
     logic [31:0] MEM_data_b, MEM_ins, MEM_pc;
 	 logic btb_resp;
@@ -43,7 +37,7 @@ module cpu
 	 assign PPLINE_reset = is_mispredict;
 	 
 	 logic memory_is_busy;
-	 assign memory_is_busy = (cmem_read_a & !cmem_resp_a) | ((cmem_write_b | cmem_read_b) & !cmem_resp_b) | (is_if_branch & ~btb_resp);
+	 assign memory_is_busy = (cmem_read_a & !cmem_resp_a) | ((cmem_write_b | cmem_read_b) & !cmem_resp_b) | ((IF_is_branch | IF_is_jal) & ~btb_resp);
 
 	 logic PPLINE_run;
     assign PPLINE_run = !memory_is_busy;
@@ -54,7 +48,7 @@ module cpu
 
 
     // Define all the control words
-	logic insert_bubble;
+	 logic insert_bubble;
     rv32i_control_word ID_cw, ID_cw_out, EXE_cw, MEM_cw, WB_cw;
 
     // stage IF;
@@ -70,11 +64,11 @@ module cpu
     assign cmem_byte_enable_a = 4'b1111;
     assign cmem_address_a = IF_pc_out;
     assign cmem_wdata_a = 32'h0;
-		logic load_if_id;
+    logic load_if_id;
 
-		assign load_if_id = PPLINE_run & ((~insert_bubble) | PPLINE_reset);
-	pc_register pc
-	(
+	 assign load_if_id = PPLINE_run & ((~insert_bubble) | PPLINE_reset);
+	 pc_register pc
+	 (
     	.clk(clk),
     	.load( load_if_id),
     	.in(IF_pc_in),
@@ -82,7 +76,7 @@ module cpu
 	);
 
 	
-	assign is_mispredict = (MEM_pc_sel == 2'h1 & MEM_br_en != MEM_branch_prediction) | (MEM_pc_sel == 2'h2);
+	assign is_mispredict = (MEM_pc_sel == 2'h1 & MEM_br_en != MEM_branch_prediction) | MEM_cw.is_jr;
 	assign pc_mux_sel = is_mispredict ? ((MEM_br_en | MEM_pc_sel == 2'h2) ? 2'h1 : 2'h2): 2'h0;
 	
 	logic [31:0] IF_pc_prediction;
@@ -90,7 +84,7 @@ module cpu
 	 
 	mux2 #(.width(32)) pc_prediction_mux
     (
-        .sel(is_if_branch & IF_branch_prediction),
+        .sel( (IF_is_branch & IF_branch_prediction) | IF_is_jal),
         .a(IF_pc_out + 32'h4),
         .b(btb_output_pc),
         .f(IF_pc_prediction)
@@ -125,12 +119,14 @@ module cpu
     );
 	 
 	
-	 assign is_if_branch = IF_ins[6:0] ==7'b1100011;
+	 assign IF_is_branch = IF_ins[6:0] == 7'b1100011;
+	 assign IF_is_jal = IF_ins[6:0] == 7'b1101111;
+	 
 	 btb btb_ins(
 		.clk(clk),
 		.input_pc(IF_pc_out),
 		.input_ins(IF_ins),
-		.read(is_if_branch && cmem_resp_a),
+		.read((IF_is_branch | IF_is_jal) && cmem_resp_a),
 		.output_pc(btb_output_pc),
 		.btb_resp(btb_resp)
 	);
@@ -182,7 +178,7 @@ module cpu
     (
         .sel(insert_bubble),
         .a(ID_cw),
-        .b(35'd0),
+        .b(36'd0),
         .f(ID_cw_out)
     );
 
@@ -225,8 +221,8 @@ module cpu
         .sel(EXE_alu_fwd_mux_sel1),
         .a(EXE_data_a),
         .b(MEM_reg_in),
-    	.c(WB_reg_in),
-    	.d(32'h0),
+    	  .c(WB_reg_in),
+    	  .d(32'h0),
         .f(EXE_alu_fwd_in1)
     );
 
@@ -235,8 +231,8 @@ module cpu
         .sel(EXE_alu_fwd_mux_sel2),
         .a(EXE_data_b),
         .b(MEM_reg_in),
-    	.c(WB_reg_in),
-    	.d(32'h0),
+    	  .c(WB_reg_in),
+    	  .d(32'h0),
         .f(EXE_alu_fwd_in2)
     );
 
@@ -401,7 +397,7 @@ module cpu
 	    .is_mispredict(is_mispredict),
 	    .is_stall( (~PPLINE_run) | insert_bubble),
 		 .is_reset( PPLINE_reset),
-		 .is_jal_reset(MEM_pc_sel == 2'h2)
+		 .is_jal_reset(PPLINE_reset & (MEM_pc_sel == 2'h2)) 
 	);
 	
 	tournament_predictor tp(

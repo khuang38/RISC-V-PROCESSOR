@@ -2,12 +2,12 @@ module l2_array #(parameter width = 256)
 (
     input clk,
     input write,
-    input [3:0] index,
+    input [5:0] index,
     input [width-1:0] datain,
     output logic [width-1:0] dataout
 );
 
-logic [width-1:0] data [15:0] /* synthesis ramstyle = "logic" */;
+logic [width-1:0] data [63:0] /* synthesis ramstyle = "logic" */;
 
 /* Initialize array */
 initial

@@ -31,7 +31,7 @@ ctrl.alumux2_sel = 3'b000;
 ctrl.mdr_sel = 3'b000;
 ctrl.mem_byte_enable = 4'b1111;
 ctrl.is_branch = 1'b0;
-
+ctrl.is_jr = 1'b0;
 /* Assign control signals based on opcode */
 case(ctrl.opcode)
         op_auipc: begin
@@ -172,6 +172,7 @@ case(ctrl.opcode)
     		ctrl.pcmux_sel = 2'h2;
     		ctrl.load_regfile = 1'b1;
 			ctrl.regfilemux_sel = 3'h3;
+			ctrl.is_jr = 1'b1;
 		end
 
         default: begin

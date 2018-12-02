@@ -23,11 +23,15 @@ module btb
  logic pmem_read; // ignore
  logic pmem_write; // ignore
  
- logic [31:0] b_imm;
+ logic [31:0] b_imm, j_imm;
+ logic is_jal;
+ assign is_jal = input_ins[6:0] == 7'b1101111;
+ 
  assign b_imm = {{20{input_ins[31]}}, input_ins[7], input_ins[30:25], input_ins[11:8], 1'b0};
+ assign j_imm = {{12{input_ins[31]}}, input_ins[19:12], input_ins[20], input_ins[30:21], 1'b0};
  
  assign pmem_resp = 1;
- assign pmem_rdata = b_imm + input_pc;
+ assign pmem_rdata = is_jal ? (j_imm + input_pc) : (b_imm + input_pc);
  
  
  logic [31:0] mem_wdata; // useless

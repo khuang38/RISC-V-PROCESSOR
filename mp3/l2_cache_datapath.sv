@@ -73,17 +73,17 @@ module l2_cache_datapath
     );
 
 /* All the necesssary internal signals */
-logic [3:0] index;      // Modified to accomodate longer L2_Cache
-logic [22:0] tag_in;
-logic [22:0] tag_0, tag_1, tag_2, tag_3;
+logic [5:0] index;      // Modified to accomodate longer L2_Cache
+logic [20:0] tag_in;
+logic [20:0] tag_0, tag_1, tag_2, tag_3;
 logic [255:0] data_0, data_1, data_2, data_3;
 logic [255:0] cache_mux_out;
 // logic [255:0] write_cache_out;
 logic [255:0] data_in;
 
 /* Signals assignment */
-assign tag_in = mem_address[31:9];
-assign index = mem_address[8:5];
+assign tag_in = mem_address[31:11];
+assign index = mem_address[10:5];
 
 /*********************/
 /* Assignment for L2 */
@@ -124,7 +124,7 @@ l2_array data_array0
     .dataout(data_0)
     );
 
-l2_array #(.width(23)) tag_array0
+l2_array #(.width(21)) tag_array0
 (
 	.clk,
 	.write(load_tag_0),
@@ -151,7 +151,7 @@ l2_array #(.width(1)) dirty_array0
     .dataout(dirty_out_0)
     );
 
-comparator #(.width(23))compare_0
+comparator #(.width(21))compare_0
 (
     .a(tag_in),
     .b(tag_0),
@@ -170,7 +170,7 @@ l2_array data_array1
     .dataout(data_1)
     );
 
-l2_array #(.width(23)) tag_array1
+l2_array #(.width(21)) tag_array1
 (
 	.clk,
 	.write(load_tag_1),
@@ -197,7 +197,7 @@ l2_array #(.width(1)) dirty_array1
     .dataout(dirty_out_1)
     );
 
-comparator #(.width(23))compare_1
+comparator #(.width(21))compare_1
 (
     .a(tag_in),
     .b(tag_1),
@@ -216,7 +216,7 @@ l2_array data_array2
     .dataout(data_2)
     );
 
-l2_array #(.width(23)) tag_array2
+l2_array #(.width(21)) tag_array2
 (
 	.clk,
 	.write(load_tag_2),
@@ -243,7 +243,7 @@ l2_array #(.width(1)) dirty_array2
     .dataout(dirty_out_2)
     );
 
-comparator #(.width(23))compare_2
+comparator #(.width(21))compare_2
 (
     .a(tag_in),
     .b(tag_2),
@@ -262,7 +262,7 @@ l2_array data_array3
     .dataout(data_3)
     );
 
-l2_array #(.width(23)) tag_array3
+l2_array #(.width(21)) tag_array3
 (
 	.clk,
 	.write(load_tag_3),
@@ -289,7 +289,7 @@ l2_array #(.width(1)) dirty_array3
     .dataout(dirty_out_3)
     );
 
-comparator #(.width(23)) compare_3
+comparator #(.width(21)) compare_3
 (
     .a(tag_in),
     .b(tag_3),
