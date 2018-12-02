@@ -1,11 +1,8 @@
-import rv32i_types::*;
-
 module l2_cache_control
 (
     input clk,
 
     /* Signals from CPU */
-    input rv32i_mem_wmask mem_byte_enable,
     input mem_read,
     input mem_write,
 
@@ -20,22 +17,24 @@ module l2_cache_control
     output logic mem_resp,
 
     /* Signal from Cache Datapath */
-    input logic hit_0,
-    input logic hit_1,
-    input logic hit_2,
-    input logic hit_3,
+    input hit_0,
+    input hit_1,
+    input hit_2,
+    input hit_3,
+    input is_hit,
 
-    input logic valid_out_0,
-    input logic dirty_out_0,
-    input logic valid_out_1,
-    input logic dirty_out_1,
+    input valid_out_0,
+    input dirty_out_0,
+    input valid_out_1,
+    input dirty_out_1,
 
-    input logic valid_out_2,
-    input logic dirty_out_2,
-    input logic valid_out_3,
-    input logic dirty_out_3,
+    input valid_out_2,
+    input dirty_out_2,
+    input valid_out_3,
+    input dirty_out_3,
+    input all_valid,
 
-    input logic [2:0] lru_out,
+    input [2:0] lru_out,
 
     /* Signal send to Cache Datapath */
     output logic load_data_0,
@@ -235,16 +234,16 @@ begin : state_actions
 
             else if (lru_out[2] == 1'b1 && lru_out[0] == 1'b0) begin     // Accessing Cache Way C
                 way_sel = 2'b10;
-                load_data_1 = 1;
-                load_tag_1 = 1;
-                load_valid_1 = 1;
+                load_data_2 = 1;
+                load_tag_2 = 1;
+                load_valid_2 = 1;
             end
 
             else if (lru_out[2] == 1'b0 && lru_out[0] == 1'b0) begin     // Accessing Cache Way D
                 way_sel = 2'b11;
-                load_data_1 = 1;
-                load_tag_1 = 1;
-                load_valid_1 = 1;
+                load_data_3 = 1;
+                load_tag_3 = 1;
+                load_valid_3 = 1;
             end
 
             else begin
@@ -301,31 +300,34 @@ begin : next_state_logic
      case (state)
         read_write: begin
             if (mem_read || mem_write) begin
-                if (hit_0 == 1 || hit_1 == 1 || hit_2 == 1 || hit_3 == 1)begin// If there is a hit in Cache Way, looping
+                if (is_hit == 1) begin// If there is a hit in Cache Way, looping
                     next_state = read_write;
                 end
 
-                else if (valid_out_0 == 1 && valid_out_1 == 1 && valid_out_2 == 1 && valid_out_3 == 1) begin /* If all ways are valid */
-                    if (dirty_out_0 == 1 && lru_out[1] == 1'b1 && lru_out[0] == 1'b1) begin // Need use Cache Way A and it is dirty
+                // else if (valid_out_0 == 1 && valid_out_1 == 1 && valid_out_2 == 1 && valid_out_3 == 1) begin /* If all ways are valid */
+                else if (all_valid == 1) begin
+                    if ((dirty_out_0 == 1) && (lru_out[1] == 1'b1) && (lru_out[0] == 1'b1)) begin // Need use Cache Way A and it is dirty
                         next_state = write_back;
                     end
 
-                    else if (dirty_out_1 == 1 && lru_out[1] == 1'b0 && lru_out[0] == 1'b1) begin    // Need to write back Way B
+                    else if ((dirty_out_1 == 1) && (lru_out[1] == 1'b0) && (lru_out[0] == 1'b1)) begin    // Need to write back Way B
                         next_state = write_back;
                     end
 
-                    else if (dirty_out_2 == 1 && lru_out[2] == 1'b1 && lru_out[0] == 1'b0) begin    // Need to write back Way C
+                    else if ((dirty_out_2 == 1) && (lru_out[2] == 1'b1) && (lru_out[0] == 1'b0)) begin    // Need to write back Way C
                         next_state = write_back;
                     end
 
-                    else if (dirty_out_3 == 1 && lru_out[2] == 1'b0 && lru_out[0] == 1'b0) begin    // Need to write back Way D
+                    else if ((dirty_out_3 == 1) && (lru_out[2] == 1'b0) && (lru_out[0] == 1'b0)) begin    // Need to write back Way D
                         next_state = write_back;
                     end
 
                     else begin
                         next_state = access_pmem;	// Stay conflicted for now
                     end
-                end else begin
+                end
+
+                else begin
                     next_state = access_pmem;
                 end
             end

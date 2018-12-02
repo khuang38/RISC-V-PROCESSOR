@@ -32,6 +32,7 @@ logic valid_out_0, dirty_out_0;
 logic valid_out_1, dirty_out_1;
 logic valid_out_2, dirty_out_2;
 logic valid_out_3, dirty_out_3;
+
 logic [2:0] lru_out;
 logic load_data_0, load_tag_0, load_valid_0, load_dirty_0;
 logic load_data_1, load_tag_1, load_valid_1, load_dirty_1;
@@ -46,15 +47,15 @@ logic load_lru;
 logic [2:0] pmem_sel;
 logic data_sel;
 logic load_pmem_wdata;
+logic all_valid;
 
 assign is_hit = hit_0 | hit_1 | hit_2 | hit_3;
-
+assign all_valid = valid_out_0 & valid_out_1 & valid_out_2 & valid_out_3;
 
 l2_cache_control l2_cache_control
 (
     .clk,
     /* Signals from CPU */
-    .mem_byte_enable(4'b1111),
     .mem_read,
     .mem_write,
     /* Signals from P-memory */
@@ -66,12 +67,13 @@ l2_cache_control l2_cache_control
     .mem_resp,
 
     /* Signal from Cache Datapath */
-    .hit_0, .hit_1, .hit_2, .hit_3,
+    .hit_0, .hit_1, .hit_2, .hit_3, .is_hit,
 
     .valid_out_0, .dirty_out_0,
     .valid_out_1, .dirty_out_1,
     .valid_out_2, .dirty_out_2,
     .valid_out_3, .dirty_out_3,
+    .all_valid,
 
     .load_lru,
     .lru_out,
