@@ -51,7 +51,7 @@ begin
         busy: begin
             if (ready == 1) begin
                 if (write) begin
-							$display("write %h %h", internal_address, wdata);
+						  $display("pmem_write %h %h", address, wdata);
                     mem[internal_address] = wdata;
                 end
 

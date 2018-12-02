@@ -13,30 +13,30 @@ module cache_datapath
     input [255:0] pmem_rdata,
 
     /* Signals from Cache Control */
-    input logic load_data_0,
-    input logic load_tag_0,
-    input logic load_valid_0,
-    input logic load_dirty_0,
+    input load_data_0,
+    input load_tag_0,
+    input load_valid_0,
+    input load_dirty_0,
 
-    input logic load_data_1,
-    input logic load_tag_1,
-    input logic load_valid_1,
-    input logic load_dirty_1,
+    input load_data_1,
+    input load_tag_1,
+    input load_valid_1,
+    input load_dirty_1,
 
-    input logic valid_in,
-    input logic dirty_in,
-    input logic way_sel,
+    input valid_in,
+    input dirty_in,
+    input way_sel,
 
-    input logic load_lru,
-    input logic lru_in,
+    input load_lru,
+    input lru_in,
 
-    input logic [1:0] pmem_sel,
-    input logic data_sel,
-	input logic load_pmem_wdata,
+    input [1:0] pmem_sel,
+    input data_sel,
+	 input load_pmem_wdata,
 
     /* Signals to P-memory */
     output rv32i_word pmem_address,
-    output [255:0] pmem_wdata,
+    output logic [255:0] pmem_wdata,
 
     /* Signals to CPU */
     output rv32i_word mem_rdata,

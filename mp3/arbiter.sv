@@ -25,6 +25,12 @@ module arbiter (
     output logic [255:0] pmem_wdata
 );
 
+	always @(posedge clk) begin
+		if(pmem_write && pmem_resp) begin
+			$display("write_l2 %h %h", pmem_address, pmem_wdata);
+		end
+	end
+
 // Signal assignments
 assign pmem_wdata = d_wdata;
 assign i_rdata = pmem_rdata;

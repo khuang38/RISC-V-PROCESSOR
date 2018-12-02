@@ -25,6 +25,12 @@ module cpu
 	input l2_hit,
 	input l2_read_or_write
 );
+	always @(posedge clk) begin
+		if(cmem_write_b && cmem_resp_b) begin
+			$display("write_l1d %h %h %h", cmem_address_b, cmem_wdata_b, cmem_byte_enable_b);
+		end
+	end
+
 	// pipe line control logic
 	logic is_mispredict;
 	logic IF_branch_prediction, ID_branch_prediction, EXE_branch_prediction, MEM_branch_prediction;
@@ -64,11 +70,13 @@ module cpu
     assign cmem_byte_enable_a = 4'b1111;
     assign cmem_address_a = IF_pc_out;
     assign cmem_wdata_a = 32'h0;
+		logic load_if_id;
 
+		assign load_if_id = PPLINE_run & ((~insert_bubble) | PPLINE_reset);
 	pc_register pc
 	(
     	.clk(clk),
-    	.load(PPLINE_run & ((~insert_bubble) | PPLINE_reset) ),
+    	.load( load_if_id),
     	.in(IF_pc_in),
     	.out(IF_pc_out)
 	);
@@ -106,8 +114,6 @@ module cpu
    logic [31:0] WB_reg_in;
 	logic [31:0] MEM_reg_in;
 	logic [4:0] ID_rs1, ID_rs2, WB_rd;
-	logic load_if_id;
-
     assign ID_rs2 = ID_ins[24:20];
     assign ID_rs1 = ID_ins[19:15];
     assign WB_rd = WB_ins[11:7];
@@ -117,9 +123,6 @@ module cpu
         .instruction(ID_ins),
         .ctrl(ID_cw)
     );
-
-	 assign load_if_id = PPLINE_run & (~insert_bubble);
-	 
 	 
 	
 	 assign is_if_branch = IF_ins[6:0] ==7'b1100011;
@@ -298,7 +301,7 @@ module cpu
     (
         .clk(clk),
         .load(PPLINE_run),
-		  .reset(0),
+		  .reset(1'b0),
         .in({MEM_cw, MEM_pc, MEM_perf_out, MEM_alu_out, MEM_rdata, MEM_ins, MEM_br_en}),
         .out({WB_cw, WB_pc, WB_perf_out, WB_alu_out, WB_rdata, WB_ins, WB_br_en})
     );
