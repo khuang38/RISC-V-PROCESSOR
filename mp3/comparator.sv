@@ -1,8 +1,8 @@
 // A module for the simple comparator
 
-module comparator (
-    input [23:0] a,
-    input [23:0] b,
+module comparator #(parameter width = 24)(
+    input [width-1:0] a,
+    input [width-1:0] b,
     input valid_bit,
     output logic equal
     );

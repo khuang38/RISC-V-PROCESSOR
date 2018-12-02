@@ -157,7 +157,7 @@ case(ctrl.opcode)
     		ctrl.cmpmux_sel = 1'b0;
     		ctrl.mem_write = 1'b0;
     		ctrl.mem_read = 1'b0;
-    		ctrl.pcmux_sel = 2'b10;
+    		ctrl.pcmux_sel = 2'h2;
     		ctrl.load_regfile = 1'b1;
 			ctrl.regfilemux_sel = 3'h3;
 		end
@@ -169,7 +169,7 @@ case(ctrl.opcode)
     		ctrl.cmpmux_sel = 1'b0;
     		ctrl.mem_write = 1'b0;
     		ctrl.mem_read = 1'b0;
-    		ctrl.pcmux_sel = 2'b10;
+    		ctrl.pcmux_sel = 2'h2;
     		ctrl.load_regfile = 1'b1;
 			ctrl.regfilemux_sel = 3'h3;
 		end

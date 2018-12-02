@@ -66,6 +66,12 @@ set_global_assignment -name EDA_TEST_BENCH_FILE physical_memory.sv -section_id m
 
 set_global_assignment -name SYSTEMVERILOG_FILE l2_array.sv
 set_global_assignment -name SYSTEMVERILOG_FILE l2_cache_control.sv
+set_global_assignment -name SYSTEMVERILOG_FILE btb_cache_datapath.sv
+set_global_assignment -name SYSTEMVERILOG_FILE btb_cache_control.sv
+set_global_assignment -name SYSTEMVERILOG_FILE btb.sv
+set_global_assignment -name SYSTEMVERILOG_FILE tournament_predictor.sv
+set_global_assignment -name SYSTEMVERILOG_FILE local_predictor.sv
+set_global_assignment -name SYSTEMVERILOG_FILE global_predictor.sv
 set_global_assignment -name SYSTEMVERILOG_FILE write_evict_buffer.sv
 set_global_assignment -name SYSTEMVERILOG_FILE perf_counter.sv
 set_global_assignment -name SYSTEMVERILOG_FILE cwu_cache_control.sv
