@@ -397,9 +397,11 @@ module cpu
 	    .l1i_read_or_write(cmem_read_a | cmem_write_a),
 	    .l1d_read_or_write(cmem_read_b | cmem_write_b),
 	    .l2_read_or_write(l2_read_or_write),
-	    .is_branch(MEM_cw.is_branch),
+	    .is_branch(MEM_cw.is_branch & PPLINE_run),
 	    .is_mispredict(is_mispredict),
-	    .is_stall( (~PPLINE_run) | insert_bubble)
+	    .is_stall( (~PPLINE_run) | insert_bubble),
+		 .is_reset( PPLINE_reset),
+		 .is_jal_reset(MEM_pc_sel == 2'h2)
 	);
 	
 	tournament_predictor tp(

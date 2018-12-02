@@ -12,7 +12,9 @@ module perf_counter
 	input l2_read_or_write,
 	input is_branch,
 	input is_mispredict,
-	input is_stall
+	input is_stall,
+	input is_reset,
+	input is_jal_reset
 );
 
 logic [31:0] data [32];
@@ -43,6 +45,8 @@ end
 6 branch cnt
 7 mispredict cnt
 8 stalls
+9 reset
+10 jal_reset
 */
 
 always_ff @(posedge clk)
@@ -59,6 +63,8 @@ begin
 	data[6] <= (clear && read_src == 6) ? 0 : (is_branch ? data[6] + 1 : data[6]);
 	data[7] <= (clear && read_src == 7) ? 0 : ((is_branch & is_mispredict) ? data[7] + 1: data[7]);
 	data[8] <= (clear && read_src == 8) ? 0 : (is_stall ? data[8] + 1 : data[8]);
+	data[9] <= (clear && read_src == 9) ? 0 : (is_reset ? data[9] + 1 : data[9]);
+	data[10] <= (clear && read_src == 10) ? 0 : (is_jal_reset ? data[10] + 1 : data[10]);
 end
 
 
