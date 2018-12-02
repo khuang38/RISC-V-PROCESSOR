@@ -35,10 +35,12 @@ module cpu
 	 logic btb_resp;
     logic PPLINE_reset;
 	 assign PPLINE_reset = is_mispredict;
+	 
+	 logic memory_is_busy;
+	 assign memory_is_busy = (cmem_read_a & !cmem_resp_a) | ((cmem_write_b | cmem_read_b) & !cmem_resp_b) | (is_if_branch & ~btb_resp);
 
 	 logic PPLINE_run;
-    assign PPLINE_run = !((cmem_read_a & !cmem_resp_a) | ((cmem_write_b | cmem_read_b) & !cmem_resp_b) 
-									| (is_if_branch & ~btb_resp));
+    assign PPLINE_run = !memory_is_busy;
 
 
     logic [1:0] EXE_alu_fwd_mux_sel1, EXE_alu_fwd_mux_sel2;
@@ -66,14 +68,14 @@ module cpu
 	pc_register pc
 	(
     	.clk(clk),
-    	.load(PPLINE_run & (~insert_bubble)),
+    	.load(PPLINE_run & ((~insert_bubble) | PPLINE_reset) ),
     	.in(IF_pc_in),
     	.out(IF_pc_out)
 	);
 
 	
 	assign is_mispredict = (MEM_pc_sel == 2'h1 & MEM_br_en != MEM_branch_prediction) | (MEM_pc_sel == 2'h2);
-	assign pc_mux_sel = is_mispredict ? (MEM_br_en ? 2'h1 : 2'h2): 2'h0;
+	assign pc_mux_sel = is_mispredict ? ((MEM_br_en | MEM_pc_sel == 2'h2) ? 2'h1 : 2'h2): 2'h0;
 	
 	logic [31:0] IF_pc_prediction;
 	logic [31:0] btb_output_pc;
@@ -296,7 +298,7 @@ module cpu
     (
         .clk(clk),
         .load(PPLINE_run),
-		.reset(PPLINE_reset),
+		  .reset(0),
         .in({MEM_cw, MEM_pc, MEM_perf_out, MEM_alu_out, MEM_rdata, MEM_ins, MEM_br_en}),
         .out({WB_cw, WB_pc, WB_perf_out, WB_alu_out, WB_rdata, WB_ins, WB_br_en})
     );

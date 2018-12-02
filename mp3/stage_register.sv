@@ -19,10 +19,8 @@ end
 
 always_ff @(posedge clk)
 begin
-	 if (reset) begin 
-		  data = 0;
-    end else if (load) begin
-        data = in;
+	if (load) begin
+        data = reset ? 32'h0 : in;
     end
 end
 
