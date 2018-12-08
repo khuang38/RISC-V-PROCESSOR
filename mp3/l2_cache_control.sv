@@ -64,7 +64,7 @@ module l2_cache_control
     output logic load_lru,
     output logic [2:0] lru_in,
     output logic [2:0] pmem_sel,
-    output logic load_pmem_wdata,
+    output logic load_regs,
     output logic data_sel
     );
 
@@ -112,7 +112,7 @@ begin : state_actions
 
     pmem_sel = 3'b000;
     data_sel = 1'b0;
-    load_pmem_wdata = 1'b0;
+    load_regs = 1'b0;
 
     case(state)
         // idle: // waiting for responses
@@ -126,7 +126,7 @@ begin : state_actions
         /* WAY Number:   0 1 2 3  */
         /**************************/
         read_write: begin
-            if (mem_read == 1)
+            if (mem_read && is_hit) begin
                 //read
                 if (hit_0 == 1) begin   // If Way A hits
                     way_sel = 2'b00;
@@ -156,15 +156,9 @@ begin : state_actions
                     load_lru = 1;
                 end
 
-                else begin      // If we missed
-                    way_sel = 2'b00;
-                    mem_resp = 0;
-                    lru_in = 3'b000;
-                    load_lru = 0;
-                end
-
             /* If we need to write data */
-            else if (mem_write == 1) begin
+            end 
+				else if (mem_write && is_hit) begin
                 if (hit_0 == 1) begin   // If Way A hits
                     way_sel = 2'b00;
                     mem_resp = 1;
@@ -208,84 +202,85 @@ begin : state_actions
                     data_sel = 1;   // load data
                     load_data_3 = 1;
                 end
-
-                else begin     // Not read nor write
-                end
             end
+				else if(mem_read || mem_write) begin
+						load_regs = 1;
+						if (lru_out[1] == 1'b1 && lru_out[0] == 1'b1) begin
+							 way_sel = 2'b00;
+							 if(dirty_out_0 == 0) pmem_sel = 0;
+							 else pmem_sel = 3'b001;
+						end
+
+						else if (lru_out[1] == 1'b0 && lru_out[0] == 1'b1) begin
+							 way_sel = 2'b01;
+							 if(dirty_out_1 == 0) pmem_sel = 0;
+							 else pmem_sel = 3'b010;
+						end
+
+						else if (lru_out[2] == 1'b1 && lru_out[0] == 1'b0) begin
+							 way_sel = 2'b10;
+							 if(dirty_out_2 == 0) pmem_sel = 0;
+							 else pmem_sel = 3'b011;
+						end
+
+						else if (lru_out[2] == 1'b0 && lru_out[0] == 1'b0) begin
+							 way_sel = 2'b11;	
+							 if(dirty_out_3 == 0) pmem_sel = 0;
+							 else pmem_sel = 3'b100;
+						end
+				end
         end
 
         access_pmem: begin
             pmem_read = 1;
-            valid_in = 1;
+            valid_in = 1;		
+				if (lru_out[1] == 1'b1 && lru_out[0] == 1'b1) begin     // Accessing Cache Way A
+					 load_data_0 = 1;
+					 load_tag_0 = 1;
+					 load_valid_0 = 1;
+				end
 
-            if (lru_out[1] == 1'b1 && lru_out[0] == 1'b1) begin     // Accessing Cache Way A
-                way_sel = 2'b00;
-                load_data_0 = 1;
-                load_tag_0 = 1;
-                load_valid_0 = 1;
-            end
+				else if (lru_out[1] == 1'b0 && lru_out[0] == 1'b1) begin     // Accessing Cache Way B
+					 load_data_1 = 1;
+					 load_tag_1 = 1;
+					 load_valid_1 = 1;
+				end
 
-            else if (lru_out[1] == 1'b0 && lru_out[0] == 1'b1) begin     // Accessing Cache Way B
-                way_sel = 2'b01;
-                load_data_1 = 1;
-                load_tag_1 = 1;
-                load_valid_1 = 1;
-            end
+				else if (lru_out[2] == 1'b1 && lru_out[0] == 1'b0) begin     // Accessing Cache Way C
+					 load_data_2 = 1;
+					 load_tag_2 = 1;
+					 load_valid_2 = 1;
+				end
 
-            else if (lru_out[2] == 1'b1 && lru_out[0] == 1'b0) begin     // Accessing Cache Way C
-                way_sel = 2'b10;
-                load_data_2 = 1;
-                load_tag_2 = 1;
-                load_valid_2 = 1;
-            end
-
-            else if (lru_out[2] == 1'b0 && lru_out[0] == 1'b0) begin     // Accessing Cache Way D
-                way_sel = 2'b11;
-                load_data_3 = 1;
-                load_tag_3 = 1;
-                load_valid_3 = 1;
-            end
-
-            else begin
-            /* Do Nothing */
-            end
+				else if (lru_out[2] == 1'b0 && lru_out[0] == 1'b0) begin     // Accessing Cache Way D
+					 load_data_3 = 1;
+					 load_tag_3 = 1;
+					 load_valid_3 = 1;
+				end
         end
 
         write_back: begin
-            load_pmem_wdata = 1'b1;
-            if (lru_out[1] == 1'b1 && lru_out[0] == 1'b1) begin
-                way_sel = 2'b00;
-                pmem_sel = 3'b001;
-                pmem_write = 1;
-                dirty_in = 0;
-                load_dirty_0 = 1;
-            end
+				pmem_write = 1;
+				dirty_in = 0;
+				if (lru_out[1] == 1'b1 && lru_out[0] == 1'b1) begin
+					 load_dirty_0 = 1;
+				end
 
-            else if (lru_out[1] == 1'b0 && lru_out[0] == 1'b1) begin
-                way_sel = 2'b01;
-                pmem_sel = 3'b010;
-                pmem_write = 1;
-                dirty_in = 0;
-                load_dirty_1 = 1;
-            end
+				else if (lru_out[1] == 1'b0 && lru_out[0] == 1'b1) begin
+					 load_dirty_1 = 1;
+				end
 
-            else if (lru_out[2] == 1'b1 && lru_out[0] == 1'b0) begin
-                way_sel = 2'b10;
-                pmem_sel = 3'b011;
-                pmem_write = 1;
-                dirty_in = 0;
-                load_dirty_2 = 1;
-            end
+				else if (lru_out[2] == 1'b1 && lru_out[0] == 1'b0) begin
+					 load_dirty_2 = 1;
+				end
 
-            else if (lru_out[2] == 1'b0 && lru_out[0] == 1'b0) begin
-                way_sel = 2'b11;
-                pmem_sel = 3'b100;
-                pmem_write = 1;
-                dirty_in = 0;
-                load_dirty_3 = 1;
-            end
-            else begin  // Should not be here
-            end
+				else if (lru_out[2] == 1'b0 && lru_out[0] == 1'b0) begin
+					 load_dirty_3 = 1;
+				end
+				if (pmem_resp == 1) begin
+						load_regs = 1;
+						pmem_sel = 0;
+				end
         end
 
         /* Default state, in case accessing by mistake */
@@ -305,7 +300,7 @@ begin : next_state_logic
                 end
 
                 // else if (valid_out_0 == 1 && valid_out_1 == 1 && valid_out_2 == 1 && valid_out_3 == 1) begin /* If all ways are valid */
-                else if (all_valid == 1) begin
+                else begin
                     if ((dirty_out_0 == 1) && (lru_out[1] == 1'b1) && (lru_out[0] == 1'b1)) begin // Need use Cache Way A and it is dirty
                         next_state = write_back;
                     end
@@ -325,10 +320,6 @@ begin : next_state_logic
                     else begin
                         next_state = access_pmem;	// Stay conflicted for now
                     end
-                end
-
-                else begin
-                    next_state = access_pmem;
                 end
             end
         end

@@ -29,6 +29,7 @@ module cache_control
 
     input logic lru_out,
 
+	 output logic load_regs,
     /* Signal send to Cache Datapath */
     output logic load_data_0,
     output logic load_tag_0,
@@ -43,11 +44,9 @@ module cache_control
     output logic valid_in,
     output logic dirty_in,
     output logic way_sel,
-
     output logic load_lru,
     output logic lru_in,
     output logic [1:0] pmem_sel,
-    output logic load_pmem_wdata,
     output logic data_sel
     );
 
@@ -58,6 +57,10 @@ enum int unsigned {
     write_back,
     access_pmem
 } state, next_state;
+
+logic is_hit;
+
+assign is_hit = hit_0 | hit_1;
 
 always_comb
 begin : state_actions
@@ -85,37 +88,27 @@ begin : state_actions
 
     pmem_sel = 2'b00;
     data_sel = 1'b0;
-    load_pmem_wdata = 1'b0;
-
+	 load_regs = 0;
     case(state)
         // idle: // waiting for responses
 
         read_write: begin
-            if (mem_read == 1)
+            if (mem_read && is_hit) begin
                 //read
                 if (hit_0 == 1) begin
                     way_sel = 0;
                     mem_resp = 1;
                     lru_in = 1;
                     load_lru = 1;
-                end
-
-                else if (hit_1 == 1) begin
+                end else begin
                     way_sel = 1;
                     mem_resp = 1;
                     lru_in = 0;
                     load_lru = 1;
                 end
 
-                else begin      // If we missed
-                    way_sel = 0;
-                    mem_resp = 0;
-                    lru_in = 0;
-                    load_lru = 0;
-                end
-
             /* If we need to write data */
-            else if (mem_write == 1) begin
+            end else if (mem_write && is_hit) begin
                 if (hit_0 == 1) begin
                     way_sel = 0;
                     mem_resp = 1;
@@ -125,9 +118,7 @@ begin : state_actions
                     load_dirty_0 = 1;
                     data_sel = 1;   // load data
                     load_data_0 = 1;
-                end
-
-                else if (hit_1 == 1) begin
+                end else begin
                     way_sel = 1;
                     mem_resp = 1;
                     lru_in = 0;     // indicate the other cache way is available
@@ -137,10 +128,18 @@ begin : state_actions
                     data_sel = 1;   // load data
                     load_data_1 = 1;
                 end
-
-                else begin     // Not read nor write
-                end
-            end
+            end else if(mem_read || mem_write) begin
+					load_regs = 1;
+					if (lru_out == 0) begin 
+					    way_sel = 1'b0;
+					    if(dirty_out_0 == 0) pmem_sel = 0;
+						 else pmem_sel = 2'b01;
+					end else begin
+						 way_sel = 1'b1;
+					    if(dirty_out_1 == 0) pmem_sel = 0;
+						 else pmem_sel = 2'b10;
+					end
+				end
         end
 
         access_pmem: begin
@@ -148,44 +147,32 @@ begin : state_actions
             valid_in = 1;
 
             if (lru_out == 0) begin     // Accessing Cache Way 0
-                way_sel = 0;
                 load_data_0 = 1;
                 load_tag_0 = 1;
                 load_valid_0 = 1;
             end
 
-            else if (lru_out == 1) begin     // Accessing Cache Way 1
-                way_sel = 1;
+            else begin     // Accessing Cache Way 1
                 load_data_1 = 1;
                 load_tag_1 = 1;
                 load_valid_1 = 1;
             end
-
-            else begin
-            /* Do Nothing */
-            end
         end
 
         write_back: begin
-            load_pmem_wdata = 1'b1;
+				pmem_write = 1;
+				dirty_in = 0;
+				
             if (lru_out == 0) begin
-                way_sel = 0;
-                pmem_sel = 2'b01;
-                pmem_write = 1;
-                dirty_in = 0;
                 load_dirty_0 = 1;
-            end
-
-            else if (lru_out == 1) begin
-                way_sel = 1;
-                pmem_sel = 2'b10;
-                pmem_write = 1;
-                dirty_in = 0;
+            end else begin
                 load_dirty_1 = 1;
             end
-
-            else begin  // Should not be here
-            end
+				
+				if (pmem_resp == 1) begin
+						load_regs = 1;
+						pmem_sel = 0;
+				end
         end
 
         /* Default state, in case accessing by mistake */
@@ -202,7 +189,7 @@ begin : next_state_logic
             if (mem_read || mem_write) begin
                 if (hit_0 == 1 || hit_1 == 1)begin// If there is a hit in Cache Way, looping
                     next_state = read_write;
-                end else if (valid_out_0 == 1 && valid_out_1 == 1) begin/* If both ways are valid */
+                end else begin/* If both ways are valid */
                     if (dirty_out_0 == 1 && lru_out == 0) begin// Need use cashway 0 and it is dirty
                         next_state = write_back;
                     end else if (dirty_out_1 == 1 && lru_out == 1) begin// Need to write back way 1
@@ -210,8 +197,6 @@ begin : next_state_logic
                     end else begin
                         next_state = access_pmem;	// Stay conflicted for now
                     end
-                end else begin
-                    next_state = access_pmem;
                 end
             end
         end

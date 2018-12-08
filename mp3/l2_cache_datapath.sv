@@ -42,7 +42,8 @@ module l2_cache_datapath
 
     input logic [2:0] pmem_sel,
     input logic data_sel,
-	input logic load_pmem_wdata,
+	
+	input load_regs,
 
     /* Signals to P-memory */
     output rv32i_word pmem_address,
@@ -73,24 +74,22 @@ module l2_cache_datapath
     );
 
 /* All the necesssary internal signals */
-logic [5:0] index;      // Modified to accomodate longer L2_Cache
-logic [20:0] tag_in;
-logic [20:0] tag_0, tag_1, tag_2, tag_3;
+logic [3:0] index;      // Modified to accomodate longer L2_Cache
+logic [22:0] tag_in;
+logic [22:0] tag_0, tag_1, tag_2, tag_3;
 logic [255:0] data_0, data_1, data_2, data_3;
 logic [255:0] cache_mux_out;
 // logic [255:0] write_cache_out;
 logic [255:0] data_in;
 
 /* Signals assignment */
-assign tag_in = mem_address[31:11];
-assign index = mem_address[10:5];
 
 /*********************/
 /* Assignment for L2 */
 // assign mem_rdata = cache_mux_out;
 // assign write_cache_out = mem_wdata;
 
-/* Assignment for physical memory signals */
+/* Assignment for phy256sical memory signals */
 //assign pmem_wdata = cache_mux_out;
 
 
@@ -103,16 +102,29 @@ assign index = mem_address[10:5];
 /* WAY Notation: A B C D  */
 /* WAY Number:   0 1 2 3  */
 /**************************/
-assign pmem_wdata = mem_rdata;
-/*
-register #(.width(256)) pmem_reg
+
+
+assign tag_in = mem_address[31:9];
+assign index = mem_address[8:5];
+
+
+logic [31:0] pmem_address_reg;
+register #(.width(32)) reg_addr
 (
 	.clk,
-	.load(load_pmem_wdata),
+	.load(load_regs),
+	.in(pmem_address_reg),
+	.out(pmem_address)
+);
+
+register #(.width(256)) reg_wdata
+(
+	.clk,
+	.load(load_regs),
 	.in(mem_rdata),
 	.out(pmem_wdata)
-);
-*/
+); 
+
 
 /* The cache way 0 */
 l2_array data_array0
@@ -124,7 +136,7 @@ l2_array data_array0
     .dataout(data_0)
     );
 
-l2_array #(.width(21)) tag_array0
+l2_array #(.width(23)) tag_array0
 (
 	.clk,
 	.write(load_tag_0),
@@ -151,7 +163,7 @@ l2_array #(.width(1)) dirty_array0
     .dataout(dirty_out_0)
     );
 
-comparator #(.width(21))compare_0
+comparator #(.width(23))compare_0
 (
     .a(tag_in),
     .b(tag_0),
@@ -170,7 +182,7 @@ l2_array data_array1
     .dataout(data_1)
     );
 
-l2_array #(.width(21)) tag_array1
+l2_array #(.width(23)) tag_array1
 (
 	.clk,
 	.write(load_tag_1),
@@ -197,7 +209,7 @@ l2_array #(.width(1)) dirty_array1
     .dataout(dirty_out_1)
     );
 
-comparator #(.width(21))compare_1
+comparator #(.width(23))compare_1
 (
     .a(tag_in),
     .b(tag_1),
@@ -216,7 +228,7 @@ l2_array data_array2
     .dataout(data_2)
     );
 
-l2_array #(.width(21)) tag_array2
+l2_array #(.width(23)) tag_array2
 (
 	.clk,
 	.write(load_tag_2),
@@ -243,7 +255,7 @@ l2_array #(.width(1)) dirty_array2
     .dataout(dirty_out_2)
     );
 
-comparator #(.width(21))compare_2
+comparator #(.width(23))compare_2
 (
     .a(tag_in),
     .b(tag_2),
@@ -262,14 +274,14 @@ l2_array data_array3
     .dataout(data_3)
     );
 
-l2_array #(.width(21)) tag_array3
+l2_array #(.width(23)) tag_array3
 (
 	.clk,
 	.write(load_tag_3),
 	.index,
 	.datain(tag_in),
 	.dataout(tag_3)
-    );
+ );
 
 l2_array #(.width(1)) valid_array3
 (
@@ -289,7 +301,7 @@ l2_array #(.width(1)) dirty_array3
     .dataout(dirty_out_3)
     );
 
-comparator #(.width(21)) compare_3
+comparator #(.width(23)) compare_3
 (
     .a(tag_in),
     .b(tag_3),
@@ -324,7 +336,7 @@ mux4 #(.width(256)) cache_way_mux
 mux8 pmem_add_mux
 (
   .sel(pmem_sel),
-  .i0({mem_address[31:5], 5'b00000}),
+  .i0({mem_address[31:5], 5'b	00000}),
   .i1({tag_0, index, 5'b00000}),
   .i2({tag_1, index, 5'b00000}),
   .i3({tag_2, index, 5'b00000}),
@@ -332,7 +344,7 @@ mux8 pmem_add_mux
   .i5(32'hXXXXXXXX),
   .i6(32'hXXXXXXXX),
   .i7(32'hXXXXXXXX),
-  .f(pmem_address)
+  .f(pmem_address_reg)
   );
 
 /* Select what data should be written into cacheline */

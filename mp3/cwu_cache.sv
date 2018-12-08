@@ -10,7 +10,6 @@ module cache
     input rv32i_word mem_wdata,
     input mem_read,
     input mem_write,
-
     /* Signals from P-memory */
     input pmem_resp,
     input [255:0] pmem_rdata,
@@ -33,14 +32,13 @@ logic valid_out_1, dirty_out_1;
 logic lru_out;
 logic load_data_0, load_tag_0, load_valid_0, load_dirty_0;
 logic load_data_1, load_tag_1, load_valid_1, load_dirty_1;
-
+logic load_regs;
 logic valid_in, dirty_in, lru_in;
 logic way_sel;
 logic load_lru;
 
 logic [1:0] pmem_sel;
 logic data_sel;
-logic load_pmem_wdata;
 
 assign is_hit = hit_0 || hit_1;
 
@@ -56,6 +54,7 @@ cache_control control
     .mem_resp,
     .hit_0,
     .hit_1,
+	 .load_regs,
     .valid_out_0,
     .dirty_out_0,
     .valid_out_1,
@@ -75,7 +74,6 @@ cache_control control
     .load_lru,
     .lru_in,
     .pmem_sel,
-    .load_pmem_wdata,
     .data_sel
     );
 
@@ -99,6 +97,7 @@ cache_datapath datapath
     .way_sel,
     .load_lru,
     .lru_in,
+	 .load_regs,
     .pmem_address,
     .pmem_wdata,
     .mem_rdata,
@@ -110,7 +109,6 @@ cache_datapath datapath
     .dirty_out_1,
     .lru_out,
     .pmem_sel,
-    .load_pmem_wdata,
     .data_sel
     );
 

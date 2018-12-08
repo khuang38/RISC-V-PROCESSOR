@@ -43,12 +43,6 @@ logic [255:0] d_wdata;
 logic [31:0] d_addr;
 logic [255:0] d_rdata;
 
-// Signals from L1-WB to Arbiter
-logic i_wb_resp, i_wb_write, i_wb_read;
-logic [255:0] i_wb_wdata;
-logic [31:0] i_wb_addr;
-logic [255:0] i_wb_rdata;
-
 logic d_wb_resp, d_wb_write, d_wb_read;
 logic [255:0] d_wb_wdata;
 logic [31:0] d_wb_addr;

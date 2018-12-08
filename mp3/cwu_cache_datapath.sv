@@ -32,8 +32,7 @@ module cache_datapath
 
     input [1:0] pmem_sel,
     input data_sel,
-	 input load_pmem_wdata,
-
+	input load_regs,
     /* Signals to P-memory */
     output rv32i_word pmem_address,
     output logic [255:0] pmem_wdata,
@@ -73,17 +72,25 @@ assign two_sel = byte_offset + 5'd2;
 assign three_sel = byte_offset + 5'd3;
 
 /* Assignment for physical memory signals */
-assign pmem_wdata = cache_mux_out;
 
-// register #(.width(256)) pmem_reg
-// (
-// 	.clk,
-// 	.load(load_pmem_wdata),
-// 	.in(cache_mux_out),
-// 	.out(pmem_wdata)
-// );
+logic [31:0] pmem_address_reg;
+register #(.width(32)) reg_addr
+(
+	.clk,
+	.load(load_regs),
+	.in(pmem_address_reg),
+	.out(pmem_address)
+);
 
-/* The cache way 0 */
+register #(.width(256)) reg_wdata
+(
+	.clk,
+	.load(load_regs),
+	.in(cache_mux_out),
+	.out(pmem_wdata)
+); 
+
+
 array data_array0
 (
     .clk,
@@ -293,7 +300,7 @@ mux4 pmem_add_mux
   .b({tag_0, index, 5'b00000}),
   .c({tag_1, index, 5'b00000}),
   .d(32'hXXXXXXXX),
-  .f(pmem_address)
+  .f(pmem_address_reg)
   );
 
 /* Separate Module that Supports Writing to each Byte */

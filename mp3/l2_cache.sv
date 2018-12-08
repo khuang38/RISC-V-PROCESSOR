@@ -46,7 +46,7 @@ logic load_lru;
 
 logic [2:0] pmem_sel;
 logic data_sel;
-logic load_pmem_wdata;
+logic load_regs;
 logic all_valid;
 
 assign is_hit = hit_0 | hit_1 | hit_2 | hit_3;
@@ -89,7 +89,7 @@ l2_cache_control l2_cache_control
     .dirty_in,
     .way_sel,
     .pmem_sel,
-    .load_pmem_wdata,
+    .load_regs,
     .data_sel
     );
 
@@ -116,7 +116,7 @@ l2_cache_datapath l2_cache_datapath
 
     .load_lru, .lru_in, .lru_out,
 
-    .pmem_sel, .data_sel, .load_pmem_wdata,
+    .pmem_sel, .data_sel, .load_regs,
 
     /* Signals to P-memory */
     .pmem_address,
