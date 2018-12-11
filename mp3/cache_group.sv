@@ -151,16 +151,40 @@ arbiter arbiter
 
 assign l2_read_or_write = ab_read | ab_write;
 
+logic l2_latch_resp;
+logic l2_latch_write;
+logic l2_latch_read;
+logic[31:0] l2_latch_address;
+logic[255:0] l2_latch_rdata;
+logic[255:0] l2_latch_wdata;
+
+memory_latch l2_latch(
+	 .clk,
+    .cmem_read(ab_read),
+    .cmem_write(ab_write),
+    .cmem_address(ab_address),
+    .cmem_wdata(ab_wdata),
+    .cmem_rdata(ab_rdata),
+    .cmem_resp(ab_resp),
+	 
+	 .pmem_read(l2_latch_read),
+    .pmem_write(l2_latch_write),
+    .pmem_address(l2_latch_address),
+    .pmem_wdata(l2_latch_wdata),
+    .pmem_rdata(l2_latch_rdata),
+    .pmem_resp(l2_latch_resp)
+	);
+
 // Added to incorporate L2-Cache
 l2_cache l2_cache
 (
     .clk,
-    .mem_resp(ab_resp),
-    .mem_rdata(ab_rdata),
-    .mem_read(ab_read),
-    .mem_write(ab_write),
-    .mem_address(ab_address),
-    .mem_wdata(ab_wdata),
+    .mem_resp(l2_latch_resp),
+    .mem_rdata(l2_latch_rdata),
+    .mem_read(l2_latch_read),
+    .mem_write(l2_latch_write),
+    .mem_address(l2_latch_address),
+    .mem_wdata(l2_latch_wdata),
 
     .pmem_resp(l2_resp),
     .pmem_rdata(l2_rdata),

@@ -19,21 +19,7 @@ initial clk = 0;
 always #5 clk = ~clk;
 
 //assign registers = dut.datapath.register_file.data;
-//assign halt = ((dut.datapath.instruct_register.data == 32'h00000063) | (dut.datapath.instruct_register.data == 32'h0000006F));
 //
-//always @(posedge clk)
-//begin
-////    if (mem_write & mem_resp) begin
-////        write_address = mem_address;
-////        write_data = mem_wdata;
-////        write = 1;
-////    end else begin
-////        write_address = 32'hx;
-////        write_data = 32'hx;
-////        write = 0;
-////    end
-//    if (halt) $finish;
-//end
 
 mp3 dut
 (
